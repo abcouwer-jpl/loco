@@ -1,0 +1,210 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - coverage.info.cleaned - src/loco_common.c</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - loco_common.c<span style="font-size: 80%;"> (source / <a href="loco_common.c.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">coverage.info.cleaned</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">41</td>
+            <td class="headerCovTableEntry">42</td>
+            <td class="headerCovTableEntryHi">97.6 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-10-22 11:54:06</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /***********************************************************************</a>
+<span class="lineNum">       2 </span>            :  * Copyright 2003, 2020 by the California Institute of Technology
+<span class="lineNum">       3 </span>            :  * ALL RIGHTS RESERVED. United States Government Sponsorship acknowledged.
+<span class="lineNum">       4 </span>            :  *
+<span class="lineNum">       5 </span>            :  * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+<span class="lineNum">       6 </span>            :  * you may not use this file except in compliance with the License.
+<span class="lineNum">       7 </span>            :  * You may obtain a copy of the License at
+<span class="lineNum">       8 </span>            :  *
+<span class="lineNum">       9 </span>            :  *     http://www.apache.org/licenses/LICENSE-2.0
+<span class="lineNum">      10 </span>            :  *
+<span class="lineNum">      11 </span>            :  * Unless required by applicable law or agreed to in writing, software
+<span class="lineNum">      12 </span>            :  * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+<span class="lineNum">      13 </span>            :  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+<span class="lineNum">      14 </span>            :  * See the License for the specific language governing permissions and
+<span class="lineNum">      15 </span>            :  * limitations under the License.
+<span class="lineNum">      16 </span>            :  *
+<span class="lineNum">      17 </span>            :  * @file        loco_common.c
+<span class="lineNum">      18 </span>            :  * @date        2020-06-17
+<span class="lineNum">      19 </span>            :  * @author      Matthew Klimesh, Aaron Kiely, Neil Abcouwer
+<span class="lineNum">      20 </span>            :  * @brief       Function definitions for LOCO compression
+<span class="lineNum">      21 </span>            :  *
+<span class="lineNum">      22 </span>            :  * This software is based on the LOCO-I algorithm which is
+<span class="lineNum">      23 </span>            :  *   described in:
+<span class="lineNum">      24 </span>            :  *
+<span class="lineNum">      25 </span>            :  *   Marcelo J. Weinberger, Gadiel Seroussi and Guillermo Sapiro,
+<span class="lineNum">      26 </span>            :  *     &quot;LOCO-I: A Low Complexity, Context-Based, Lossless Image
+<span class="lineNum">      27 </span>            :  *     Compression Algorithm&quot;, in Proc. Data Compression Conference
+<span class="lineNum">      28 </span>            :  *     (DCC '96), pp. 140-149, 1996.
+<span class="lineNum">      29 </span>            :  *
+<span class="lineNum">      30 </span>            :  * This implementation originates with Matt Klimesh and Aaron Kiely's
+<span class="lineNum">      31 </span>            :  * implementation for MER, and was modified by Neil Abcouwer.
+<span class="lineNum">      32 </span>            :  *
+<span class="lineNum">      33 </span>            :  * This implementation lacks the run length encoding (&quot;embedded
+<span class="lineNum">      34 </span>            :  * alphabet extension&quot;) of LOCO-I.  There are other differences as well.
+<span class="lineNum">      35 </span>            :  *
+<span class="lineNum">      36 </span>            :  */
+<span class="lineNum">      37 </span>            : 
+<span class="lineNum">      38 </span>            : #include &lt;loco/loco_types_pub.h&gt;
+<span class="lineNum">      39 </span>            : #include &lt;loco/loco_conf_private.h&gt;
+<span class="lineNum">      40 </span>            : 
+<span class="lineNum">      41 </span>            : /*
+<span class="lineNum">      42 </span>            :   PARTITION_INTEGER(length, n_divisions, small_step, n_small_steps)
+<span class="lineNum">      43 </span>            :   This macro is used only in loco_setup_segs.
+<span class="lineNum">      44 </span>            :   Takes integers &quot;length&quot; and &quot;n_divisions&quot; as input, and sets &quot;small_step&quot; and
+<span class="lineNum">      45 </span>            :   &quot;n_small_steps&quot;, which must be integer lvalues.  If &quot;length&quot; is divided as evenly
+<span class="lineNum">      46 </span>            :   as possible into &quot;n_divisions&quot; divisions, then there will be &quot;n_small_steps&quot;
+<span class="lineNum">      47 </span>            :   divisions of size &quot;small_step&quot; (where n_small_steps &gt;= 1) and the remaining
+<a name="48"><span class="lineNum">      48 </span>            :   (n_divisions - n_small_steps) divisions will be of size small_step+1.</a>
+<span class="lineNum">      49 </span>            : */
+<span class="lineNum">      50 </span><span class="lineCov">        180 : LOCO_PRIVATE void partition_integer(I32 length, I32 n_divisions,</span>
+<span class="lineNum">      51 </span>            :         I32 * small_step, I32 * n_small_steps)
+<span class="lineNum">      52 </span>            : {
+<span class="lineNum">      53 </span><span class="lineCov">        180 :     LOCO_ASSERT(small_step != NULL);</span>
+<span class="lineNum">      54 </span><span class="lineCov">        180 :     LOCO_ASSERT(n_small_steps != NULL);</span>
+<span class="lineNum">      55 </span>            : 
+<span class="lineNum">      56 </span><span class="lineCov">        180 :     LOCO_ASSERT(n_divisions != 0);</span>
+<span class="lineNum">      57 </span>            : 
+<span class="lineNum">      58 </span><span class="lineCov">        180 :     *small_step = length/n_divisions;</span>
+<span class="lineNum">      59 </span><span class="lineCov">        180 :     *n_small_steps = (*small_step+1)*n_divisions - length;</span>
+<span class="lineNum">      60 </span><span class="lineCov">        180 : }</span>
+<span class="lineNum">      61 </span>            : 
+<span class="lineNum">      62 </span>            : /* Note:  The function deloco_setup_segs uses the PARTITION_INTEGER macro, which
+<span class="lineNum">      63 </span>            :    contains a division operation, and contains one additional division operation.
+<span class="lineNum">      64 </span>            :    It can be proven that the divisor in each case will be strictly positive;
+<span class="lineNum">      65 </span>            :    however, it takes some work to reach this conclusion, so it may be
+<a name="66"><span class="lineNum">      66 </span>            :    sensible to put in a check verifying each divisor is strictly positive,</a>
+<span class="lineNum">      67 </span>            :    and if not, abort compression and return an error flag. */
+<span class="lineNum">      68 </span><span class="lineCov">         36 : void loco_setup_segs(I32 image_width, I32 image_height, I32 n_segs,</span>
+<span class="lineNum">      69 </span>            :         LocoRect seg_rect[LOCO_MAX_SEGS])
+<span class="lineNum">      70 </span>            : {
+<span class="lineNum">      71 </span><span class="lineCov">         36 :     LOCO_ASSERT(seg_rect != NULL);</span>
+<span class="lineNum">      72 </span><span class="lineCov">         36 :     LOCO_ASSERT_1(n_segs &gt;= 0, n_segs);</span>
+<span class="lineNum">      73 </span>            : 
+<span class="lineNum">      74 </span>            :     /* The parameter checking shoud guarantee that
+<span class="lineNum">      75 </span>            :      * wd*ht &gt;= n_segs*LOCO_MIN_SEGMENT_PIXELS; this fact
+<span class="lineNum">      76 </span>            :      * can be used to show that &quot;x_step&quot; and &quot;y_step&quot; will be strictly positive */
+<span class="lineNum">      77 </span><span class="lineCov">         36 :     LOCO_ASSERT_3(image_width*image_height &gt;= n_segs * LOCO_MIN_SEGMENT_PIXELS,</span>
+<span class="lineNum">      78 </span>            :             image_width, image_height, n_segs);
+<span class="lineNum">      79 </span>            : 
+<span class="lineNum">      80 </span>            :     /* Determine the number of rows of segments.  This code
+<span class="lineNum">      81 </span>            :        guarantees that 1 &lt;= n_rows &lt;= n_segs */
+<span class="lineNum">      82 </span><span class="lineCov">         36 :     I32 n_rows=1;</span>
+<span class="lineNum">      83 </span><span class="lineCov">        218 :     while(n_rows&lt;n_segs &amp;&amp; (n_rows+1)*n_rows*image_width &lt; image_height*n_segs) {</span>
+<span class="lineNum">      84 </span><span class="lineCov">        146 :         n_rows++;</span>
+<span class="lineNum">      85 </span>            :     }
+<span class="lineNum">      86 </span>            : 
+<span class="lineNum">      87 </span>            :     /* Determine the number of rows and columns in the top region */
+<span class="lineNum">      88 </span>            :     I32 n_cols;
+<span class="lineNum">      89 </span>            :     I32 n_rows_top;
+<span class="lineNum">      90 </span><span class="lineCov">         36 :     partition_integer(n_segs, n_rows, &amp;n_cols, &amp;n_rows_top);  /* As noted</span>
+<span class="lineNum">      91 </span>            :         above, n_rows &gt;= 1 */
+<span class="lineNum">      92 </span>            : 
+<span class="lineNum">      93 </span>            :     // height in pixels of the top portion
+<span class="lineNum">      94 </span><span class="lineCov">         36 :     I32 top_height = (image_height*n_cols*n_rows_top + n_segs/2)/n_segs;</span>
+<span class="lineNum">      95 </span><span class="lineCov">         36 :     if (top_height&lt;n_rows_top) {</span>
+<span class="lineNum">      96 </span><span class="lineNoCov">          0 :         top_height=n_rows_top; // UNREACHABLE if parameters checking passed</span>
+<span class="lineNum">      97 </span>            :     }
+<span class="lineNum">      98 </span>            : 
+<span class="lineNum">      99 </span>            :     /* Determine the segment dimensions in the top region */
+<span class="lineNum">     100 </span>            :     I32 x_step;
+<span class="lineNum">     101 </span>            :     I32 n_x_small_steps;
+<span class="lineNum">     102 </span>            :     I32 y_step;
+<span class="lineNum">     103 </span>            :     I32 n_y_small_steps;
+<span class="lineNum">     104 </span><span class="lineCov">         36 :     partition_integer(image_width, n_cols, &amp;x_step, &amp;n_x_small_steps);</span>
+<span class="lineNum">     105 </span><span class="lineCov">         36 :     partition_integer(top_height, n_rows_top, &amp;y_step, &amp;n_y_small_steps);</span>
+<span class="lineNum">     106 </span><span class="lineCov">         36 :     LOCO_ASSERT_1(x_step &gt;= 0, x_step);</span>
+<span class="lineNum">     107 </span><span class="lineCov">         36 :     LOCO_ASSERT_1(y_step &gt;= 0, y_step);</span>
+<span class="lineNum">     108 </span>            : 
+<span class="lineNum">     109 </span>            :     // Determine the segment rectangles
+<span class="lineNum">     110 </span><span class="lineCov">         36 :     I32 seg = 0;</span>
+<span class="lineNum">     111 </span><span class="lineCov">         36 :     I32 y = 0;</span>
+<span class="lineNum">     112 </span><span class="lineCov">        218 :     for (I32 i=0; i&lt;n_rows; i++) {</span>
+<span class="lineNum">     113 </span><span class="lineCov">        182 :         if (i==n_rows_top) {  /* This actually can't happen when i==0 */</span>
+<span class="lineNum">     114 </span>            :             /* Switch to bottom region parameters */
+<span class="lineNum">     115 </span><span class="lineCov">         36 :             n_cols++;</span>
+<span class="lineNum">     116 </span><span class="lineCov">         36 :             partition_integer(image_width, n_cols, &amp;x_step, &amp;n_x_small_steps);</span>
+<span class="lineNum">     117 </span><span class="lineCov">         36 :             partition_integer(image_height-top_height, n_rows-n_rows_top,</span>
+<span class="lineNum">     118 </span>            :                     &amp;y_step, &amp;n_y_small_steps);
+<span class="lineNum">     119 </span><span class="lineCov">         36 :             LOCO_ASSERT_1(x_step &gt;= 0, x_step);</span>
+<span class="lineNum">     120 </span><span class="lineCov">         36 :             LOCO_ASSERT_1(y_step &gt;= 0, y_step);</span>
+<span class="lineNum">     121 </span><span class="lineCov">         36 :             n_y_small_steps += n_rows_top;</span>
+<span class="lineNum">     122 </span>            :         }
+<span class="lineNum">     123 </span><span class="lineCov">        182 :         I32 x = 0;</span>
+<span class="lineNum">     124 </span><span class="lineCov">       1088 :         for (I32 j=0; j&lt;n_cols; j++) {</span>
+<span class="lineNum">     125 </span><span class="lineCov">        906 :             seg_rect[seg].ystart = y;</span>
+<span class="lineNum">     126 </span><span class="lineCov">        906 :             seg_rect[seg].yend = y+y_step+(i&gt;=n_y_small_steps);</span>
+<span class="lineNum">     127 </span><span class="lineCov">        906 :             seg_rect[seg].xstart = x;</span>
+<span class="lineNum">     128 </span><span class="lineCov">        906 :             x += x_step+(j&gt;=n_x_small_steps);</span>
+<span class="lineNum">     129 </span><span class="lineCov">        906 :             seg_rect[seg].xend = x;</span>
+<span class="lineNum">     130 </span><span class="lineCov">        906 :             seg++;</span>
+<span class="lineNum">     131 </span>            :         }
+<span class="lineNum">     132 </span><span class="lineCov">        182 :         y += y_step+(i&gt;=n_y_small_steps);</span>
+<span class="lineNum">     133 </span>            :     }
+<span class="lineNum">     134 </span><span class="lineCov">         36 : }</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

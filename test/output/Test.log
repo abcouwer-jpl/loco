@@ -1,0 +1,484 @@
+Start testing: Oct 22 11:54 PDT
+----------------------------------------------------------
+1/1 Testing: loco_gtest_test
+1/1 Test: loco_gtest_test
+Command: "/mnt/c/Users/abcouwer/Documents/Dev/comp/loco/build/loco_gtest"
+Directory: /mnt/c/Users/abcouwer/Documents/Dev/comp/loco/build
+"loco_gtest_test" start time: Oct 22 11:54 PDT
+Output:
+----------------------------------------------------------
+Running main() from /mnt/c/Users/abcouwer/Documents/Dev/comp/loco/build/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from LocoDeathTest
+[ RUN      ] LocoDeathTest.Asserts
+death tests enabled.
+compressed size: 2076256
+death tests complete.
+[       OK ] LocoDeathTest.Asserts (142 ms)
+[----------] 1 test from LocoDeathTest (142 ms total)
+
+[----------] 9 tests from LocoTest
+[ RUN      ] LocoTest.SingleColors8
+
+all black image
+color image 0
+make single color input: 0
+image size: 480 x 480 x 2 = 460800
+compressed size: 235264
+decompressed: width: 480 height: 480 segs: 31 bit_depth: 8
+realsegnum status first_line first_sample n_lines, n_samples, n_missing
+0 0 0 0 77 96 0
+1 0 0 96 77 96 0
+2 0 0 192 77 96 0
+3 0 0 288 77 96 0
+4 0 0 384 77 96 0
+5 0 77 0 77 96 0
+6 0 77 96 77 96 0
+7 0 77 192 77 96 0
+8 0 77 288 77 96 0
+9 0 77 384 77 96 0
+10 0 154 0 77 96 0
+11 0 154 96 77 96 0
+12 0 154 192 77 96 0
+13 0 154 288 77 96 0
+14 0 154 384 77 96 0
+15 0 231 0 78 96 0
+16 0 231 96 78 96 0
+17 0 231 192 78 96 0
+18 0 231 288 78 96 0
+19 0 231 384 78 96 0
+20 0 309 0 78 96 0
+21 0 309 96 78 96 0
+22 0 309 192 78 96 0
+23 0 309 288 78 96 0
+24 0 309 384 78 96 0
+25 0 387 0 93 80 0
+26 0 387 80 93 80 0
+27 0 387 160 93 80 0
+28 0 387 240 93 80 0
+29 0 387 320 93 80 0
+30 0 387 400 93 80 0
+Check error
+
+all white image
+color image 255
+make single color input: 255
+image size: 480 x 480 x 2 = 460800
+compressed size: 235264
+decompressed: width: 480 height: 480 segs: 31 bit_depth: 8
+realsegnum status first_line first_sample n_lines, n_samples, n_missing
+0 0 0 0 77 96 0
+1 0 0 96 77 96 0
+2 0 0 192 77 96 0
+3 0 0 288 77 96 0
+4 0 0 384 77 96 0
+5 0 77 0 77 96 0
+6 0 77 96 77 96 0
+7 0 77 192 77 96 0
+8 0 77 288 77 96 0
+9 0 77 384 77 96 0
+10 0 154 0 77 96 0
+11 0 154 96 77 96 0
+12 0 154 192 77 96 0
+13 0 154 288 77 96 0
+14 0 154 384 77 96 0
+15 0 231 0 78 96 0
+16 0 231 96 78 96 0
+17 0 231 192 78 96 0
+18 0 231 288 78 96 0
+19 0 231 384 78 96 0
+20 0 309 0 78 96 0
+21 0 309 96 78 96 0
+22 0 309 192 78 96 0
+23 0 309 288 78 96 0
+24 0 309 384 78 96 0
+25 0 387 0 93 80 0
+26 0 387 80 93 80 0
+27 0 387 160 93 80 0
+28 0 387 240 93 80 0
+29 0 387 320 93 80 0
+30 0 387 400 93 80 0
+Check error
+
+all grey image
+color image 127
+make single color input: 127
+image size: 480 x 480 x 2 = 460800
+compressed size: 235264
+decompressed: width: 480 height: 480 segs: 31 bit_depth: 8
+realsegnum status first_line first_sample n_lines, n_samples, n_missing
+0 0 0 0 77 96 0
+1 0 0 96 77 96 0
+2 0 0 192 77 96 0
+3 0 0 288 77 96 0
+4 0 0 384 77 96 0
+5 0 77 0 77 96 0
+6 0 77 96 77 96 0
+7 0 77 192 77 96 0
+8 0 77 288 77 96 0
+9 0 77 384 77 96 0
+10 0 154 0 77 96 0
+11 0 154 96 77 96 0
+12 0 154 192 77 96 0
+13 0 154 288 77 96 0
+14 0 154 384 77 96 0
+15 0 231 0 78 96 0
+16 0 231 96 78 96 0
+17 0 231 192 78 96 0
+18 0 231 288 78 96 0
+19 0 231 384 78 96 0
+20 0 309 0 78 96 0
+21 0 309 96 78 96 0
+22 0 309 192 78 96 0
+23 0 309 288 78 96 0
+24 0 309 384 78 96 0
+25 0 387 0 93 80 0
+26 0 387 80 93 80 0
+27 0 387 160 93 80 0
+28 0 387 240 93 80 0
+29 0 387 320 93 80 0
+30 0 387 400 93 80 0
+Check error
+[       OK ] LocoTest.SingleColors8 (153 ms)
+[ RUN      ] LocoTest.SingleColors12
+
+all black image
+color image 0
+make single color input: 0
+image size: 480 x 480 x 2 = 460800
+compressed size: 239424
+decompressed: width: 480 height: 480 segs: 31 bit_depth: 12
+realsegnum status first_line first_sample n_lines, n_samples, n_missing
+0 0 0 0 77 96 0
+1 0 0 96 77 96 0
+2 0 0 192 77 96 0
+3 0 0 288 77 96 0
+4 0 0 384 77 96 0
+5 0 77 0 77 96 0
+6 0 77 96 77 96 0
+7 0 77 192 77 96 0
+8 0 77 288 77 96 0
+9 0 77 384 77 96 0
+10 0 154 0 77 96 0
+11 0 154 96 77 96 0
+12 0 154 192 77 96 0
+13 0 154 288 77 96 0
+14 0 154 384 77 96 0
+15 0 231 0 78 96 0
+16 0 231 96 78 96 0
+17 0 231 192 78 96 0
+18 0 231 288 78 96 0
+19 0 231 384 78 96 0
+20 0 309 0 78 96 0
+21 0 309 96 78 96 0
+22 0 309 192 78 96 0
+23 0 309 288 78 96 0
+24 0 309 384 78 96 0
+25 0 387 0 93 80 0
+26 0 387 80 93 80 0
+27 0 387 160 93 80 0
+28 0 387 240 93 80 0
+29 0 387 320 93 80 0
+30 0 387 400 93 80 0
+Check error
+
+all white image
+color image 4095
+make single color input: 4095
+image size: 480 x 480 x 2 = 460800
+compressed size: 239424
+decompressed: width: 480 height: 480 segs: 31 bit_depth: 12
+realsegnum status first_line first_sample n_lines, n_samples, n_missing
+0 0 0 0 77 96 0
+1 0 0 96 77 96 0
+2 0 0 192 77 96 0
+3 0 0 288 77 96 0
+4 0 0 384 77 96 0
+5 0 77 0 77 96 0
+6 0 77 96 77 96 0
+7 0 77 192 77 96 0
+8 0 77 288 77 96 0
+9 0 77 384 77 96 0
+10 0 154 0 77 96 0
+11 0 154 96 77 96 0
+12 0 154 192 77 96 0
+13 0 154 288 77 96 0
+14 0 154 384 77 96 0
+15 0 231 0 78 96 0
+16 0 231 96 78 96 0
+17 0 231 192 78 96 0
+18 0 231 288 78 96 0
+19 0 231 384 78 96 0
+20 0 309 0 78 96 0
+21 0 309 96 78 96 0
+22 0 309 192 78 96 0
+23 0 309 288 78 96 0
+24 0 309 384 78 96 0
+25 0 387 0 93 80 0
+26 0 387 80 93 80 0
+27 0 387 160 93 80 0
+28 0 387 240 93 80 0
+29 0 387 320 93 80 0
+30 0 387 400 93 80 0
+Check error
+
+all grey image
+color image 2047
+make single color input: 2047
+image size: 480 x 480 x 2 = 460800
+compressed size: 239424
+decompressed: width: 480 height: 480 segs: 31 bit_depth: 12
+realsegnum status first_line first_sample n_lines, n_samples, n_missing
+0 0 0 0 77 96 0
+1 0 0 96 77 96 0
+2 0 0 192 77 96 0
+3 0 0 288 77 96 0
+4 0 0 384 77 96 0
+5 0 77 0 77 96 0
+6 0 77 96 77 96 0
+7 0 77 192 77 96 0
+8 0 77 288 77 96 0
+9 0 77 384 77 96 0
+10 0 154 0 77 96 0
+11 0 154 96 77 96 0
+12 0 154 192 77 96 0
+13 0 154 288 77 96 0
+14 0 154 384 77 96 0
+15 0 231 0 78 96 0
+16 0 231 96 78 96 0
+17 0 231 192 78 96 0
+18 0 231 288 78 96 0
+19 0 231 384 78 96 0
+20 0 309 0 78 96 0
+21 0 309 96 78 96 0
+22 0 309 192 78 96 0
+23 0 309 288 78 96 0
+24 0 309 384 78 96 0
+25 0 387 0 93 80 0
+26 0 387 80 93 80 0
+27 0 387 160 93 80 0
+28 0 387 240 93 80 0
+29 0 387 320 93 80 0
+30 0 387 400 93 80 0
+Check error
+[       OK ] LocoTest.SingleColors12 (159 ms)
+[ RUN      ] LocoTest.Random8
+image size: 480 x 480 x 2 = 460800
+compressed size: 2055232
+decompressed: width: 480 height: 480 segs: 31 bit_depth: 8
+realsegnum status first_line first_sample n_lines, n_samples, n_missing
+0 0 0 0 77 96 0
+1 0 0 96 77 96 0
+2 0 0 192 77 96 0
+3 0 0 288 77 96 0
+4 0 0 384 77 96 0
+5 0 77 0 77 96 0
+6 0 77 96 77 96 0
+7 0 77 192 77 96 0
+8 0 77 288 77 96 0
+9 0 77 384 77 96 0
+10 0 154 0 77 96 0
+11 0 154 96 77 96 0
+12 0 154 192 77 96 0
+13 0 154 288 77 96 0
+14 0 154 384 77 96 0
+15 0 231 0 78 96 0
+16 0 231 96 78 96 0
+17 0 231 192 78 96 0
+18 0 231 288 78 96 0
+19 0 231 384 78 96 0
+20 0 309 0 78 96 0
+21 0 309 96 78 96 0
+22 0 309 192 78 96 0
+23 0 309 288 78 96 0
+24 0 309 384 78 96 0
+25 0 387 0 93 80 0
+26 0 387 80 93 80 0
+27 0 387 160 93 80 0
+28 0 387 240 93 80 0
+29 0 387 320 93 80 0
+30 0 387 400 93 80 0
+Check error
+[       OK ] LocoTest.Random8 (91 ms)
+[ RUN      ] LocoTest.Random12
+image size: 480 x 480 x 2 = 460800
+compressed size: 3212192
+decompressed: width: 480 height: 480 segs: 31 bit_depth: 12
+realsegnum status first_line first_sample n_lines, n_samples, n_missing
+0 0 0 0 77 96 0
+1 0 0 96 77 96 0
+2 0 0 192 77 96 0
+3 0 0 288 77 96 0
+4 0 0 384 77 96 0
+5 0 77 0 77 96 0
+6 0 77 96 77 96 0
+7 0 77 192 77 96 0
+8 0 77 288 77 96 0
+9 0 77 384 77 96 0
+10 0 154 0 77 96 0
+11 0 154 96 77 96 0
+12 0 154 192 77 96 0
+13 0 154 288 77 96 0
+14 0 154 384 77 96 0
+15 0 231 0 78 96 0
+16 0 231 96 78 96 0
+17 0 231 192 78 96 0
+18 0 231 288 78 96 0
+19 0 231 384 78 96 0
+20 0 309 0 78 96 0
+21 0 309 96 78 96 0
+22 0 309 192 78 96 0
+23 0 309 288 78 96 0
+24 0 309 384 78 96 0
+25 0 387 0 93 80 0
+26 0 387 80 93 80 0
+27 0 387 160 93 80 0
+28 0 387 240 93 80 0
+29 0 387 320 93 80 0
+30 0 387 400 93 80 0
+Check error
+[       OK ] LocoTest.Random12 (106 ms)
+[ RUN      ] LocoTest.Misc
+sizeof(LocoState) = 45608
+sizeof(DeLocoState) = 45656
+BYTE_ORDER = 1234, BIG_ENDIAN = 4321,  LITTLE_ENDIAN = 1234, BYTE_ORDER == BIG_ENDIAN = 0, BYTE_ORDER == LITTLE_ENDIAN = 1
+BYTE_ORDER == LITTLE_ENDIAN
+is_little_endian = 1
+[       OK ] LocoTest.Misc (0 ms)
+[ RUN      ] LocoTest.CheckImage
+[       OK ] LocoTest.CheckImage (0 ms)
+[ RUN      ] LocoTest.CompressFailures
+compress, image too small
+make single color input: 85
+WARNING LOCO_COMPRESS_ABORT In loco_compress(), check_image() status 0x0480000080 indicates compression cannot continue. Image width: 4, space_width: 4, height:4, n_segs: 31, bitdepth: 8, size_data_bytes: 32.
+WARNING LOCO_COMPRESS_ABORT In loco_compress(), check_image() status 0x0480000080 indicates compression cannot continue. Image width: 4, space_width: 4, height:4, n_segs: 31, bitdepth: 12, size_data_bytes: 32.
+make single color input: 85
+compress, tiny output size
+compress, negative output size
+[       OK ] LocoTest.CompressFailures (18 ms)
+[ RUN      ] LocoTest.DecompressFailures
+0 segments
+WARNING LOCO_DECOMPRESS_BAD_NSEGS In loco_decompress(), compressed_in->n_segs (0) was less than 1 or greater than 32.
+max+1 segments
+WARNING LOCO_DECOMPRESS_BAD_NSEGS In loco_decompress(), compressed_in->n_segs (33) was less than 1 or greater than 32.
+short data segment
+WARNING LOCO_DECOMPRESS_BAD_SEGS In loco_decompress(), one or more segment issues: Short data: 0x0001 Inconsistent: 0x0000 Bad data: 0x0000 Duplicates: 0x0000 Bad header: 0x0000 Missing data: 0x0000.
+WARNING LOCO_DECOMPRESS_BAD_SEGS In loco_decompress(), one or more segment issues: Short data: 0x0008 Inconsistent: 0x0000 Bad data: 0x0000 Duplicates: 0x0000 Bad header: 0x0000 Missing data: 0x0000.
+corrupt widths for a segment
+WARNING LOCO_DECOMPRESS_BAD_SEGS In loco_decompress(), one or more segment issues: Short data: 0x0000 Inconsistent: 0x0008 Bad data: 0x0000 Duplicates: 0x0000 Bad header: 0x0000 Missing data: 0x0000.
+corrupt segment number for a segment, higher than number
+WARNING LOCO_DECOMPRESS_BAD_SEGS In loco_decompress(), one or more segment issues: Short data: 0x0000 Inconsistent: 0x0000 Bad data: 0x0008 Duplicates: 0x0000 Bad header: 0x0000 Missing data: 0x0000.
+corrupt segment number for a segment, duplicate
+WARNING LOCO_DECOMPRESS_BAD_SEGS In loco_decompress(), one or more segment issues: Short data: 0x0000 Inconsistent: 0x0000 Bad data: 0x0000 Duplicates: 0x0008 Bad header: 0x0000 Missing data: 0x0000.
+corrupt 0th width code to 0
+WARNING LOCO_DECOMPRESS_BAD_SEGS In loco_decompress(), one or more segment issues: Short data: 0x0000 Inconsistent: 0x0000 Bad data: 0x0001 Duplicates: 0x0000 Bad header: 0x0000 Missing data: 0x0000.
+corrupt 0th header code
+WARNING LOCO_DECOMPRESS_BAD_SEGS In loco_decompress(), one or more segment issues: Short data: 0x0000 Inconsistent: 0x0000 Bad data: 0x0000 Duplicates: 0x0000 Bad header: 0x0001 Missing data: 0x0000.
+corrupt all header codes
+WARNING LOCO_DECOMPRESS_NOGOODSEGS In loco_decompress(), no good segments found.
+WARNING LOCO_DECOMPRESS_BAD_SEGS In loco_decompress(), one or more segment issues: Short data: 0x0000 Inconsistent: 0x0000 Bad data: 0x0000 Duplicates: 0x0000 Bad header: 0x03ff Missing data: 0x0000.
+decompress result when compression did not have enough output space
+WARNING LOCO_DECOMPRESS_BAD_SEGS In loco_decompress(), one or more segment issues: Short data: 0x0000 Inconsistent: 0x0000 Bad data: 0x0000 Duplicates: 0x0000 Bad header: 0x0000 Missing data: 0x0200.
+data_seg_status[0] = 0x0000
+data_seg_status[1] = 0x0000
+data_seg_status[2] = 0x0000
+data_seg_status[3] = 0x0000
+data_seg_status[4] = 0x0000
+data_seg_status[5] = 0x0000
+data_seg_status[6] = 0x0000
+data_seg_status[7] = 0x0000
+data_seg_status[8] = 0x0000
+data_seg_status[9] = 0x0080
+output buffer size too small
+WARNING LOCO_DECOMPRESS_BUFTOOSMALL In loco_decompress(), 460799 B output buffer could not hold 480 x 480 x 2 B image.
+[       OK ] LocoTest.DecompressFailures (319 ms)
+[ RUN      ] LocoTest.Image
+width = 432, height = 400
+image size: 432 x 400 x 2 = 345600
+compressed size: 572576
+decompressed: width: 432 height: 400 segs: 31 bit_depth: 8
+realsegnum status first_line first_sample n_lines, n_samples, n_missing
+0 0 0 0 77 72 0
+1 0 0 72 77 72 0
+2 0 0 144 77 72 0
+3 0 0 216 77 72 0
+4 0 0 288 77 72 0
+5 0 0 360 77 72 0
+6 0 77 0 77 72 0
+7 0 77 72 77 72 0
+8 0 77 144 77 72 0
+9 0 77 216 77 72 0
+10 0 77 288 77 72 0
+11 0 77 360 77 72 0
+12 0 154 0 78 72 0
+13 0 154 72 78 72 0
+14 0 154 144 78 72 0
+15 0 154 216 78 72 0
+16 0 154 288 78 72 0
+17 0 154 360 78 72 0
+18 0 232 0 78 72 0
+19 0 232 72 78 72 0
+20 0 232 144 78 72 0
+21 0 232 216 78 72 0
+22 0 232 288 78 72 0
+23 0 232 360 78 72 0
+24 0 310 0 90 61 0
+25 0 310 61 90 61 0
+26 0 310 122 90 62 0
+27 0 310 184 90 62 0
+28 0 310 246 90 62 0
+29 0 310 308 90 62 0
+30 0 310 370 90 62 0
+Check error
+image size: 432 x 400 x 2 = 345600
+compressed size: 1108608
+decompressed: width: 432 height: 400 segs: 31 bit_depth: 12
+realsegnum status first_line first_sample n_lines, n_samples, n_missing
+0 0 0 0 77 72 0
+1 0 0 72 77 72 0
+2 0 0 144 77 72 0
+3 0 0 216 77 72 0
+4 0 0 288 77 72 0
+5 0 0 360 77 72 0
+6 0 77 0 77 72 0
+7 0 77 72 77 72 0
+8 0 77 144 77 72 0
+9 0 77 216 77 72 0
+10 0 77 288 77 72 0
+11 0 77 360 77 72 0
+12 0 154 0 78 72 0
+13 0 154 72 78 72 0
+14 0 154 144 78 72 0
+15 0 154 216 78 72 0
+16 0 154 288 78 72 0
+17 0 154 360 78 72 0
+18 0 232 0 78 72 0
+19 0 232 72 78 72 0
+20 0 232 144 78 72 0
+21 0 232 216 78 72 0
+22 0 232 288 78 72 0
+23 0 232 360 78 72 0
+24 0 310 0 90 61 0
+25 0 310 61 90 61 0
+26 0 310 122 90 62 0
+27 0 310 184 90 62 0
+28 0 310 246 90 62 0
+29 0 310 308 90 62 0
+30 0 310 370 90 62 0
+Check error
+[       OK ] LocoTest.Image (120 ms)
+[----------] 9 tests from LocoTest (967 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (1110 ms total)
+[  PASSED  ] 10 tests.
+<end of output>
+Test time =   1.15 sec
+----------------------------------------------------------
+Test Passed.
+"loco_gtest_test" end time: Oct 22 11:54 PDT
+"loco_gtest_test" time elapsed: 00:00:01
+----------------------------------------------------------
+
+End testing: Oct 22 11:54 PDT

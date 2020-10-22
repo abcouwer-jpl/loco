@@ -1,0 +1,822 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - coverage.info.cleaned - src/loco_decompress.c</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - loco_decompress.c<span style="font-size: 80%;"> (source / <a href="loco_decompress.c.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">coverage.info.cleaned</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">309</td>
+            <td class="headerCovTableEntry">309</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-10-22 11:54:06</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">10</td>
+            <td class="headerCovTableEntry">10</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /***********************************************************************</a>
+<span class="lineNum">       2 </span>            :  * Copyright 2003, 2020 by the California Institute of Technology
+<span class="lineNum">       3 </span>            :  * ALL RIGHTS RESERVED. United States Government Sponsorship acknowledged.
+<span class="lineNum">       4 </span>            :  *
+<span class="lineNum">       5 </span>            :  * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+<span class="lineNum">       6 </span>            :  * you may not use this file except in compliance with the License.
+<span class="lineNum">       7 </span>            :  * You may obtain a copy of the License at
+<span class="lineNum">       8 </span>            :  *
+<span class="lineNum">       9 </span>            :  *     http://www.apache.org/licenses/LICENSE-2.0
+<span class="lineNum">      10 </span>            :  *
+<span class="lineNum">      11 </span>            :  * Unless required by applicable law or agreed to in writing, software
+<span class="lineNum">      12 </span>            :  * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+<span class="lineNum">      13 </span>            :  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+<span class="lineNum">      14 </span>            :  * See the License for the specific language governing permissions and
+<span class="lineNum">      15 </span>            :  * limitations under the License.
+<span class="lineNum">      16 </span>            :  *
+<span class="lineNum">      17 </span>            :  * @file        loco_decompress.c
+<span class="lineNum">      18 </span>            :  * @date        2020-06-15
+<span class="lineNum">      19 </span>            :  * @author      Matthew Klimesh, Aaron Kiely, Neil Abcouwer
+<span class="lineNum">      20 </span>            :  * @brief       Function definitions for LOCO decompression
+<span class="lineNum">      21 </span>            :  *
+<span class="lineNum">      22 </span>            :  * This software is based on the LOCO-I algorithm which is
+<span class="lineNum">      23 </span>            :  *   described in:
+<span class="lineNum">      24 </span>            :  *
+<span class="lineNum">      25 </span>            :  *   Marcelo J. Weinberger, Gadiel Seroussi and Guillermo Sapiro,
+<span class="lineNum">      26 </span>            :  *     &quot;LOCO-I: A Low Complexity, Context-Based, Lossless Image
+<span class="lineNum">      27 </span>            :  *     Compression Algorithm&quot;, in Proc. Data Compression Conference
+<span class="lineNum">      28 </span>            :  *     (DCC '96), pp. 140-149, 1996.
+<span class="lineNum">      29 </span>            :  *
+<span class="lineNum">      30 </span>            :  * This implementation originates with Matt Klimesh and Aaron Kiely's
+<span class="lineNum">      31 </span>            :  * implementation for MER, and was modified by Neil Abcouwer.
+<span class="lineNum">      32 </span>            :  *
+<span class="lineNum">      33 </span>            :  * This implementation lacks the run length encoding (&quot;embedded
+<span class="lineNum">      34 </span>            :  * alphabet extension&quot;) of LOCO-I.  There are other differences as well.
+<span class="lineNum">      35 </span>            :  *
+<span class="lineNum">      36 </span>            :  * FIXME loco decompression code is not very optimized, relative to compression code.
+<span class="lineNum">      37 </span>            :  * This is because for Mars missions, compression was the only on-board operation.
+<span class="lineNum">      38 </span>            :  * Could be improved by switching funtions that are called in the encoding loop
+<span class="lineNum">      39 </span>            :  * to macros/inlining
+<span class="lineNum">      40 </span>            :  *
+<span class="lineNum">      41 </span>            :  */
+<span class="lineNum">      42 </span>            : 
+<span class="lineNum">      43 </span>            : #include &lt;loco/loco_pub.h&gt;
+<span class="lineNum">      44 </span>            : #include &lt;loco/loco_conf_private.h&gt;
+<span class="lineNum">      45 </span>            : #include &lt;loco/loco_private.h&gt;
+<span class="lineNum">      46 </span>            : 
+<span class="lineNum">      47 </span>            : // Macros for performing context-determination-related table lookups
+<span class="lineNum">      48 </span>            : #define G_TO_CTXT_8BIT(g)  deloco_g_table_8bit[(g) &amp; 511]
+<span class="lineNum">      49 </span>            : #define G_TO_CTXT_12BIT(g)  deloco_g_table_12bit[((g)&gt;&gt;3) &amp; 1023]
+<span class="lineNum">      50 </span>            : #define GFOUR_TO_CTXT_8BIT(g)  deloco_gfour_table_8bit[(g) &amp; 511]
+<span class="lineNum">      51 </span>            : #define GFOUR_TO_CTXT_12BIT(g)  deloco_gfour_table_12bit[((g)&gt;&gt;3) &amp; 1023]
+<span class="lineNum">      52 </span>            : 
+<span class="lineNum">      53 </span>            : // Constants
+<span class="lineNum">      54 </span>            : enum {
+<span class="lineNum">      55 </span>            :     PRANGE_12BIT = 4096,
+<span class="lineNum">      56 </span>            :     PRANGE_8BIT = 256,
+<span class="lineNum">      57 </span>            :     RMIN_12BIT = -2048,
+<span class="lineNum">      58 </span>            :     RMIN_8BIT = -128,
+<span class="lineNum">      59 </span>            :     RMAX_12BIT = 2047,
+<span class="lineNum">      60 </span>            :     RMAX_8BIT = 127,
+<span class="lineNum">      61 </span>            : };
+<span class="lineNum">      62 </span>            : 
+<span class="lineNum">      63 </span>            : // lookup tables
+<span class="lineNum">      64 </span>            : LOCO_PRIVATE const U8 deloco_g_table_8bit[512] =
+<span class="lineNum">      65 </span>            :     {0,0,1,1,1,2,2,2, 2,2,2,2,2,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">      66 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">      67 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">      68 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">      69 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">      70 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">      71 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">      72 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">      73 </span>            : 
+<span class="lineNum">      74 </span>            :      7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7,
+<span class="lineNum">      75 </span>            :      7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7,
+<span class="lineNum">      76 </span>            :      7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7,
+<span class="lineNum">      77 </span>            :      7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7,
+<span class="lineNum">      78 </span>            :      7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7,
+<span class="lineNum">      79 </span>            :      7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7,
+<span class="lineNum">      80 </span>            :      7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7,
+<span class="lineNum">      81 </span>            :      7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,6,6,6,6, 6,6,6,6,5,5,5,0};
+<span class="lineNum">      82 </span>            : 
+<span class="lineNum">      83 </span>            : LOCO_PRIVATE const U8 deloco_gfour_table_8bit[512] =
+<span class="lineNum">      84 </span>            :     {0,0,0,0,0,0,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">      85 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">      86 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">      87 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">      88 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">      89 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">      90 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">      91 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">      92 </span>            : 
+<span class="lineNum">      93 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">      94 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">      95 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">      96 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">      97 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">      98 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">      99 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     100 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,0,0,0,0,0};
+<span class="lineNum">     101 </span>            : 
+<span class="lineNum">     102 </span>            : LOCO_PRIVATE const U8 deloco_g_table_12bit[1024] =
+<span class="lineNum">     103 </span>            :     {0,0,1,1,1,1,2,2, 2,2,2,2,2,2,2,2, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     104 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     105 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     106 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     107 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     108 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     109 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     110 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     111 </span>            : 
+<span class="lineNum">     112 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     113 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     114 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     115 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     116 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     117 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     118 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     119 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     120 </span>            : 
+<span class="lineNum">     121 </span>            :      7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7,
+<span class="lineNum">     122 </span>            :      7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7,
+<span class="lineNum">     123 </span>            :      7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7,
+<span class="lineNum">     124 </span>            :      7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7,
+<span class="lineNum">     125 </span>            :      7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7,
+<span class="lineNum">     126 </span>            :      7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7,
+<span class="lineNum">     127 </span>            :      7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7,
+<span class="lineNum">     128 </span>            :      7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7,
+<span class="lineNum">     129 </span>            : 
+<span class="lineNum">     130 </span>            :      7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7,
+<span class="lineNum">     131 </span>            :      7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7,
+<span class="lineNum">     132 </span>            :      7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7,
+<span class="lineNum">     133 </span>            :      7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7,
+<span class="lineNum">     134 </span>            :      7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7,
+<span class="lineNum">     135 </span>            :      7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7,
+<span class="lineNum">     136 </span>            :      7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7,
+<span class="lineNum">     137 </span>            :      7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7, 6,6,6,6,6,6,6,6, 6,6,5,5,5,5,0,0};
+<span class="lineNum">     138 </span>            : 
+<span class="lineNum">     139 </span>            : LOCO_PRIVATE const U8 deloco_gfour_table_12bit[1024] =
+<span class="lineNum">     140 </span>            :     {0,0,0,0,0,0,0,0, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     141 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     142 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     143 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     144 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     145 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     146 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     147 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     148 </span>            : 
+<span class="lineNum">     149 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     150 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     151 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     152 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     153 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     154 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     155 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     156 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     157 </span>            : 
+<span class="lineNum">     158 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     159 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     160 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     161 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     162 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     163 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     164 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     165 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     166 </span>            : 
+<span class="lineNum">     167 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     168 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     169 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     170 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     171 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     172 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     173 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     174 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 0,0,0,0,0,0,0,0};
+<span class="lineNum">     175 </span>            : 
+<span class="lineNum">     176 </span>            : 
+<span class="lineNum">     177 </span>            : // function prototypes
+<span class="lineNum">     178 </span>            : LOCO_PRIVATE void deloco_init_bitstream(LocoDecompressState * state,
+<span class="lineNum">     179 </span>            :         U8 *datastart, I32 segdatabits);
+<span class="lineNum">     180 </span>            : LOCO_PRIVATE I32 deloco_read_int(LocoDecompressState * state, I32 *pval, I32 nbits);
+<span class="lineNum">     181 </span>            : LOCO_PRIVATE I32 deloco_read_bit(LocoDecompressState * deloco);
+<span class="lineNum">     182 </span>            : LOCO_PRIVATE I32 deloco_decompress_segment(LocoDecompressState * deloco, I32 seg);
+<span class="lineNum">     183 </span>            : LOCO_PRIVATE I32 deloco_decode_value(LocoDecompressState * deloco, I32 k);
+<span class="lineNum">     184 </span>            : LOCO_PRIVATE void deloco_find_context(LocoDecompressState * deloco,
+<span class="lineNum">     185 </span>            :         I32 x, I32 y, I32 xstart, I32 xend, I32 ystart);
+<span class="lineNum">     186 </span>            : LOCO_PRIVATE I32 deloco_g_to_ctxt(LocoDecompressState * deloco, I32 g);
+<span class="lineNum">     187 </span>            : LOCO_PRIVATE I32 deloco_gfour_to_ctxt(LocoDecompressState * deloco, I32 g);
+<span class="lineNum">     188 </span>            : LOCO_PRIVATE I32 deloco_estimate(LocoDecompressState * deloco,
+<span class="lineNum">     189 </span>            :         I32 x, I32 y, I32 xstart, I32 ystart);
+<span class="lineNum">     190 </span>            : 
+<a name="191"><span class="lineNum">     191 </span>            : // functions</a>
+<span class="lineNum">     192 </span>            : 
+<span class="lineNum">     193 </span><span class="lineCov">         23 : I32 loco_decompress(</span>
+<span class="lineNum">     194 </span>            :     LocoDecompressState * state,
+<span class="lineNum">     195 </span>            :     const LocoCompressedSegments * compressed_in,
+<span class="lineNum">     196 </span>            :     LocoImage *image_out,
+<span class="lineNum">     197 </span>            :     LocoSegmentData seg_data[LOCO_MAX_SEGS])
+<span class="lineNum">     198 </span>            : {
+<span class="lineNum">     199 </span><span class="lineCov">         23 :     LOCO_ASSERT(state != NULL);</span>
+<span class="lineNum">     200 </span><span class="lineCov">         23 :     LOCO_ASSERT(image_out != NULL);</span>
+<span class="lineNum">     201 </span><span class="lineCov">         23 :     LOCO_ASSERT(image_out-&gt;data != NULL);</span>
+<span class="lineNum">     202 </span><span class="lineCov">         23 :     LOCO_ASSERT(compressed_in != NULL);</span>
+<span class="lineNum">     203 </span><span class="lineCov">         23 :     LOCO_ASSERT(seg_data != NULL);</span>
+<span class="lineNum">     204 </span>            : 
+<span class="lineNum">     205 </span>            :     I32 status;
+<span class="lineNum">     206 </span>            :     I32 have_parameters;
+<span class="lineNum">     207 </span>            :     I32 i;
+<span class="lineNum">     208 </span>            :     I32 j;
+<span class="lineNum">     209 </span>            :     I32 header_code;
+<span class="lineNum">     210 </span>            :     I32 width;
+<span class="lineNum">     211 </span>            :     I32 height;
+<span class="lineNum">     212 </span>            :     I32 cur_n_segs;
+<span class="lineNum">     213 </span>            :     I32 seg;
+<span class="lineNum">     214 </span>            :     I32 seg_decoded[LOCO_MAX_SEGS];
+<span class="lineNum">     215 </span>            :     I32 x;
+<span class="lineNum">     216 </span>            :     I32 y;
+<span class="lineNum">     217 </span><span class="lineCov">         23 :     U32 seg_flag_shortdataseg = 0x0;</span>
+<span class="lineNum">     218 </span><span class="lineCov">         23 :     U32 seg_flag_inconsistentdata = 0x0;</span>
+<span class="lineNum">     219 </span><span class="lineCov">         23 :     U32 seg_flag_baddata = 0x0;</span>
+<span class="lineNum">     220 </span><span class="lineCov">         23 :     U32 seg_flag_duplicateseg = 0x0;</span>
+<span class="lineNum">     221 </span><span class="lineCov">         23 :     U32 seg_flag_badheadercode = 0x0;</span>
+<span class="lineNum">     222 </span><span class="lineCov">         23 :     U32 seg_flag_missingdata = 0x0;</span>
+<span class="lineNum">     223 </span>            : 
+<span class="lineNum">     224 </span>            :     LOCO_COMPILE_ASSERT(LOCO_MAX_SEGS &lt;= 32, too_many_loco_segs);
+<span class="lineNum">     225 </span>            : 
+<span class="lineNum">     226 </span><span class="lineCov">         23 :     status = 0;</span>
+<span class="lineNum">     227 </span><span class="lineCov">         23 :     if (compressed_in-&gt;n_segs&lt;1 || compressed_in-&gt;n_segs&gt;LOCO_MAX_SEGS) {</span>
+<span class="lineNum">     228 </span><span class="lineCov">          2 :         status |= DELOCO_BADNUMDATASEG_FLAG;</span>
+<span class="lineNum">     229 </span><span class="lineCov">          2 :         LOCO_WARN2(LOCO_DECOMPRESS_BAD_NSEGS,</span>
+<span class="lineNum">     230 </span>            :                 &quot;In loco_decompress(), compressed_in-&gt;n_segs (%d) &quot;
+<span class="lineNum">     231 </span>            :                 &quot;was less than 1 or greater than %d.&quot;,
+<span class="lineNum">     232 </span>            :                 compressed_in-&gt;n_segs, LOCO_MAX_SEGS);
+<span class="lineNum">     233 </span><span class="lineCov">          2 :         return status;</span>
+<span class="lineNum">     234 </span>            :     }
+<span class="lineNum">     235 </span>            : 
+<span class="lineNum">     236 </span><span class="lineCov">         21 :     have_parameters = 0;</span>
+<span class="lineNum">     237 </span>            : 
+<span class="lineNum">     238 </span><span class="lineCov">        452 :     for (i=0; i&lt;compressed_in-&gt;n_segs; i++) {</span>
+<span class="lineNum">     239 </span><span class="lineCov">        432 :         seg_data[i].status = 0;</span>
+<span class="lineNum">     240 </span><span class="lineCov">        432 :         LOCO_ASSERT(compressed_in-&gt;seg_ptr[i] != NULL);</span>
+<span class="lineNum">     241 </span><span class="lineCov">        432 :         deloco_init_bitstream(state, compressed_in-&gt;seg_ptr[i],</span>
+<span class="lineNum">     242 </span>            :                 compressed_in-&gt;n_bits[i]);
+<span class="lineNum">     243 </span><span class="lineCov">        432 :         (void)deloco_read_int(state, &amp;header_code, HEADER_CODE_BITS);</span>
+<span class="lineNum">     244 </span><span class="lineCov">        432 :         (void)deloco_read_int(state, &amp;width, IMAGEWIDTH_BITS);</span>
+<span class="lineNum">     245 </span><span class="lineCov">        432 :         (void)deloco_read_int(state, &amp;height, IMAGEHEIGHT_BITS);</span>
+<span class="lineNum">     246 </span><span class="lineCov">        432 :         (void)deloco_read_int(state, &amp;cur_n_segs, SEGINDEX_BITS);</span>
+<span class="lineNum">     247 </span><span class="lineCov">        432 :         (void)deloco_read_int(state, &amp;seg, SEGINDEX_BITS);</span>
+<span class="lineNum">     248 </span><span class="lineCov">        432 :         if (state-&gt;out_of_bits) {</span>
+<span class="lineNum">     249 </span><span class="lineCov">          2 :             seg_data[i].status |= DELOCO_SHORTDATASEG_FLAG;</span>
+<span class="lineNum">     250 </span><span class="lineCov">          2 :             seg_flag_shortdataseg |= (0x1&lt;&lt;i);</span>
+<span class="lineNum">     251 </span><span class="lineCov">          2 :             continue;</span>
+<span class="lineNum">     252 </span>            :         }
+<span class="lineNum">     253 </span><span class="lineCov">        430 :         width++;</span>
+<span class="lineNum">     254 </span><span class="lineCov">        430 :         height++;</span>
+<span class="lineNum">     255 </span><span class="lineCov">        430 :         cur_n_segs++;</span>
+<span class="lineNum">     256 </span>            : 
+<span class="lineNum">     257 </span>            :         /* Record actual segment number (before checking whether it is valid) */
+<span class="lineNum">     258 </span><span class="lineCov">        430 :         seg_data[i].real_num = seg;</span>
+<span class="lineNum">     259 </span>            : 
+<span class="lineNum">     260 </span><span class="lineCov">        430 :         if (have_parameters) {</span>
+<span class="lineNum">     261 </span><span class="lineCov">        795 :             if (state-&gt;header_code!=header_code || state-&gt;image_width!=width ||</span>
+<span class="lineNum">     262 </span><span class="lineCov">        794 :                     state-&gt;image_height!=height || state-&gt;n_segs!=cur_n_segs) {</span>
+<span class="lineNum">     263 </span><span class="lineCov">          1 :                 seg_data[i].status |= DELOCO_INCONSISTENTDATA_FLAG;</span>
+<span class="lineNum">     264 </span><span class="lineCov">          1 :                 seg_flag_inconsistentdata |= (0x1&lt;&lt;i);</span>
+<span class="lineNum">     265 </span><span class="lineCov">          1 :                 continue;</span>
+<span class="lineNum">     266 </span>            :             }
+<span class="lineNum">     267 </span><span class="lineCov">        397 :             if (seg &gt;= state-&gt;n_segs) {</span>
+<span class="lineNum">     268 </span><span class="lineCov">          1 :                 seg_data[i].status |= DELOCO_BADDATA_FLAG;</span>
+<span class="lineNum">     269 </span><span class="lineCov">          1 :                 seg_flag_baddata |= (0x1&lt;&lt;i);</span>
+<span class="lineNum">     270 </span><span class="lineCov">          1 :                 continue;</span>
+<span class="lineNum">     271 </span>            :             }
+<span class="lineNum">     272 </span><span class="lineCov">        396 :             if (seg_decoded[seg]) {</span>
+<span class="lineNum">     273 </span><span class="lineCov">          1 :                 seg_data[i].status |= DELOCO_DUPLICATESEG_FLAG;</span>
+<span class="lineNum">     274 </span><span class="lineCov">          1 :                 seg_flag_duplicateseg |= (0x1&lt;&lt;i);</span>
+<span class="lineNum">     275 </span><span class="lineCov">          1 :                 continue;</span>
+<span class="lineNum">     276 </span>            :             }
+<span class="lineNum">     277 </span>            :             // else everything is fine, decompress the segment
+<span class="lineNum">     278 </span>            :         } else { // Don't yet have the basic image parameters
+<span class="lineNum">     279 </span>            : 
+<span class="lineNum">     280 </span><span class="lineCov">         48 :             if (header_code != HEADER_CODE_FOR_12BIT &amp;&amp;</span>
+<span class="lineNum">     281 </span><span class="lineCov">         16 :                     header_code != HEADER_CODE_FOR_8BIT) {</span>
+<span class="lineNum">     282 </span><span class="lineCov">         11 :                 seg_data[i].status |= DELOCO_BAD_HEADER_CODE_FLAG;</span>
+<span class="lineNum">     283 </span><span class="lineCov">         11 :                 seg_flag_badheadercode |= (0x1&lt;&lt;i);</span>
+<span class="lineNum">     284 </span><span class="lineCov">         11 :                 continue;</span>
+<span class="lineNum">     285 </span>            :             }
+<span class="lineNum">     286 </span><span class="lineCov">         41 :             if (width&lt;LOCO_MIN_IMAGE_WIDTH || width&gt;LOCO_MAX_IMAGE_WIDTH ||</span>
+<span class="lineNum">     287 </span><span class="lineCov">         60 :                     height&lt;LOCO_MIN_IMAGE_HEIGHT || height&gt;LOCO_MAX_IMAGE_HEIGHT ||</span>
+<span class="lineNum">     288 </span><span class="lineCov">         60 :                     cur_n_segs&lt;1 || cur_n_segs&gt;LOCO_MAX_SEGS ||</span>
+<span class="lineNum">     289 </span><span class="lineCov">         20 :                     width*height &lt; cur_n_segs*LOCO_MIN_SEGMENT_PIXELS) {</span>
+<span class="lineNum">     290 </span><span class="lineCov">          1 :                 seg_data[i].status |= DELOCO_BADDATA_FLAG;</span>
+<span class="lineNum">     291 </span><span class="lineCov">          1 :                 seg_flag_baddata |= (0x1&lt;&lt;i);</span>
+<span class="lineNum">     292 </span><span class="lineCov">          1 :                 continue;</span>
+<span class="lineNum">     293 </span>            :             }
+<span class="lineNum">     294 </span>            : 
+<span class="lineNum">     295 </span>            :             /* Record image parameters */
+<span class="lineNum">     296 </span><span class="lineCov">         20 :             have_parameters = 1;</span>
+<span class="lineNum">     297 </span><span class="lineCov">         20 :             state-&gt;header_code = header_code;</span>
+<span class="lineNum">     298 </span><span class="lineCov">         20 :             state-&gt;image_width = width;</span>
+<span class="lineNum">     299 </span><span class="lineCov">         20 :             state-&gt;image_height = height;</span>
+<span class="lineNum">     300 </span><span class="lineCov">         20 :             state-&gt;n_segs = cur_n_segs;</span>
+<span class="lineNum">     301 </span>            : 
+<span class="lineNum">     302 </span><span class="lineCov">         40 :             image_out-&gt;bit_depth = 8*(header_code==HEADER_CODE_FOR_8BIT) +</span>
+<span class="lineNum">     303 </span><span class="lineCov">         20 :                     12*(header_code==HEADER_CODE_FOR_12BIT);</span>
+<span class="lineNum">     304 </span><span class="lineCov">         20 :             image_out-&gt;width = width;</span>
+<span class="lineNum">     305 </span><span class="lineCov">         20 :             image_out-&gt;space_width = width; // FIXME revisit</span>
+<span class="lineNum">     306 </span><span class="lineCov">         20 :             image_out-&gt;height = height;</span>
+<span class="lineNum">     307 </span><span class="lineCov">         20 :             image_out-&gt;n_segs = cur_n_segs;</span>
+<span class="lineNum">     308 </span>            : 
+<span class="lineNum">     309 </span>            :             // check output buffer large enough
+<span class="lineNum">     310 </span><span class="lineCov">         20 :             if (image_out-&gt;size_data_bytes &lt; width*height*sizeof(LocoPixelType)) {</span>
+<span class="lineNum">     311 </span><span class="lineCov">          1 :                 status |= DELOCO_BUFTOOSMALL_FLAG;</span>
+<span class="lineNum">     312 </span><span class="lineCov">          1 :                 LOCO_WARN4(LOCO_DECOMPRESS_BUFTOOSMALL,</span>
+<span class="lineNum">     313 </span>            :                         &quot;In loco_decompress(), %d B output buffer &quot;
+<span class="lineNum">     314 </span>            :                         &quot;could not hold %d x %d x %u B image.&quot;,
+<span class="lineNum">     315 </span>            :                         image_out-&gt;size_data_bytes,
+<span class="lineNum">     316 </span>            :                         width, height, (U32)sizeof(LocoPixelType));
+<span class="lineNum">     317 </span><span class="lineCov">          1 :                 return status;</span>
+<span class="lineNum">     318 </span>            :             }
+<span class="lineNum">     319 </span>            : 
+<span class="lineNum">     320 </span><span class="lineCov">        440 :             for (j=0; j&lt;cur_n_segs; j++) {</span>
+<span class="lineNum">     321 </span><span class="lineCov">        421 :                 seg_decoded[j] = 0;</span>
+<span class="lineNum">     322 </span>            :             }
+<span class="lineNum">     323 </span><span class="lineCov">         19 :             state-&gt;image[0] = image_out-&gt;data;</span>
+<span class="lineNum">     324 </span><span class="lineCov">       8960 :             for (j=1; j&lt;height; j++) {</span>
+<span class="lineNum">     325 </span><span class="lineCov">       8941 :                 state-&gt;image[j] = state-&gt;image[j-1]+width;</span>
+<span class="lineNum">     326 </span>            :             }
+<span class="lineNum">     327 </span><span class="lineCov">       8979 :             for (y=0; y&lt;height; y++) {</span>
+<span class="lineNum">     328 </span><span class="lineCov">    4271360 :                 for (x=0; x&lt;width; x++) {</span>
+<span class="lineNum">     329 </span><span class="lineCov">    4262400 :                     state-&gt;image[y][x] = 0;</span>
+<span class="lineNum">     330 </span>            :                 }
+<span class="lineNum">     331 </span>            :             }
+<span class="lineNum">     332 </span>            : 
+<span class="lineNum">     333 </span><span class="lineCov">         19 :             loco_setup_segs(state-&gt;image_width, state-&gt;image_height, state-&gt;n_segs,</span>
+<span class="lineNum">     334 </span><span class="lineCov">         19 :                     state-&gt;seg_bound);</span>
+<span class="lineNum">     335 </span>            :         }
+<span class="lineNum">     336 </span>            : 
+<span class="lineNum">     337 </span>            :         /* If we haven't moved on to the next data segment at this point,
+<span class="lineNum">     338 </span>            :            we can decompress the current segment (but first we record the segment
+<span class="lineNum">     339 </span>            :            bounding box). */
+<span class="lineNum">     340 </span><span class="lineCov">        414 :         seg_data[i].bound_first_line = state-&gt;seg_bound[seg].ystart;</span>
+<span class="lineNum">     341 </span><span class="lineCov">        414 :         seg_data[i].bound_first_sample = state-&gt;seg_bound[seg].xstart;</span>
+<span class="lineNum">     342 </span><span class="lineCov">       1242 :         seg_data[i].bound_n_lines = state-&gt;seg_bound[seg].yend</span>
+<span class="lineNum">     343 </span><span class="lineCov">        828 :                 - state-&gt;seg_bound[seg].ystart;</span>
+<span class="lineNum">     344 </span><span class="lineCov">       1242 :         seg_data[i].bound_n_samples = state-&gt;seg_bound[seg].xend</span>
+<span class="lineNum">     345 </span><span class="lineCov">        828 :                 - state-&gt;seg_bound[seg].xstart;</span>
+<span class="lineNum">     346 </span><span class="lineCov">        414 :         seg_data[i].n_missing_pixels = deloco_decompress_segment(state, seg);</span>
+<span class="lineNum">     347 </span><span class="lineCov">        414 :         if (seg_data[i].n_missing_pixels &gt; 0) {</span>
+<span class="lineNum">     348 </span><span class="lineCov">          1 :             seg_data[i].status |= DELOCO_MISSING_DATA_FLAG;</span>
+<span class="lineNum">     349 </span><span class="lineCov">          1 :             seg_flag_missingdata |= (0x1&lt;&lt;i);</span>
+<span class="lineNum">     350 </span>            :         }
+<span class="lineNum">     351 </span><span class="lineCov">        414 :         seg_decoded[seg] = 1;</span>
+<span class="lineNum">     352 </span>            :     }
+<span class="lineNum">     353 </span>            : 
+<span class="lineNum">     354 </span><span class="lineCov">         20 :     if (!have_parameters) {</span>
+<span class="lineNum">     355 </span><span class="lineCov">          1 :         status |= DELOCO_NOGOODSEGMENTS_FLAG;</span>
+<span class="lineNum">     356 </span><span class="lineCov">          1 :         LOCO_WARN0(LOCO_DECOMPRESS_NOGOODSEGS,</span>
+<span class="lineNum">     357 </span>            :                 &quot;In loco_decompress(), no good segments found.&quot;);
+<span class="lineNum">     358 </span>            :     }
+<span class="lineNum">     359 </span>            : 
+<span class="lineNum">     360 </span><span class="lineCov">         20 :     if (seg_flag_shortdataseg || seg_flag_inconsistentdata</span>
+<span class="lineNum">     361 </span><span class="lineCov">         17 :             || seg_flag_baddata || seg_flag_duplicateseg</span>
+<span class="lineNum">     362 </span><span class="lineCov">         14 :             || seg_flag_badheadercode || seg_flag_missingdata) {</span>
+<span class="lineNum">     363 </span><span class="lineCov">          9 :         LOCO_WARN6(LOCO_DECOMPRESS_BAD_SEGS,</span>
+<span class="lineNum">     364 </span>            :                 &quot;In loco_decompress(), one or more segment issues: &quot;
+<span class="lineNum">     365 </span>            :                 &quot;Short data: 0x%04x Inconsistent: 0x%04x Bad data: 0x%04x &quot;
+<span class="lineNum">     366 </span>            :                 &quot;Duplicates: 0x%04x Bad header: 0x%04x Missing data: 0x%04x.&quot;,
+<span class="lineNum">     367 </span>            :                 seg_flag_shortdataseg, seg_flag_inconsistentdata, seg_flag_baddata,
+<span class="lineNum">     368 </span>            :                 seg_flag_duplicateseg, seg_flag_badheadercode, seg_flag_missingdata);
+<span class="lineNum">     369 </span>            :     }
+<span class="lineNum">     370 </span>            : 
+<span class="lineNum">     371 </span><span class="lineCov">         20 :     return status;</span>
+<span class="lineNum">     372 </span>            : }
+<a name="373"><span class="lineNum">     373 </span>            : </a>
+<span class="lineNum">     374 </span>            : 
+<span class="lineNum">     375 </span><span class="lineCov">        432 : LOCO_PRIVATE void deloco_init_bitstream(</span>
+<span class="lineNum">     376 </span>            :         LocoDecompressState * state, U8 *datastart, I32 segdatabits)
+<span class="lineNum">     377 </span>            : {
+<span class="lineNum">     378 </span><span class="lineCov">        432 :     LOCO_ASSERT(state != NULL);</span>
+<span class="lineNum">     379 </span><span class="lineCov">        432 :     LOCO_ASSERT(datastart != NULL);</span>
+<span class="lineNum">     380 </span><span class="lineCov">        432 :     state-&gt;data_start = datastart;</span>
+<span class="lineNum">     381 </span><span class="lineCov">        432 :     state-&gt;seg_data_bits = segdatabits;</span>
+<span class="lineNum">     382 </span><span class="lineCov">        432 :     state-&gt;bit_count = 0;</span>
+<span class="lineNum">     383 </span><span class="lineCov">        432 :     state-&gt;out_of_bits = 0;</span>
+<a name="384"><span class="lineNum">     384 </span><span class="lineCov">        432 : }</span></a>
+<span class="lineNum">     385 </span>            : 
+<span class="lineNum">     386 </span><span class="lineCov">       2988 : LOCO_PRIVATE I32 deloco_read_int(LocoDecompressState * state, I32 *pval, I32 nbits)</span>
+<span class="lineNum">     387 </span>            : {
+<span class="lineNum">     388 </span><span class="lineCov">       2988 :     LOCO_ASSERT(pval != NULL);</span>
+<span class="lineNum">     389 </span>            : 
+<span class="lineNum">     390 </span>            :     I32 i;
+<span class="lineNum">     391 </span>            :     I32 bit;
+<span class="lineNum">     392 </span><span class="lineCov">       2988 :     I32 ret = 1;</span>
+<span class="lineNum">     393 </span>            : 
+<span class="lineNum">     394 </span><span class="lineCov">       2988 :     *pval = 0;</span>
+<span class="lineNum">     395 </span><span class="lineCov">      27196 :     for (i=0; i&lt;nbits; i++) {</span>
+<span class="lineNum">     396 </span><span class="lineCov">      24214 :         bit = deloco_read_bit(state);</span>
+<span class="lineNum">     397 </span><span class="lineCov">      24214 :         if (bit != -1) { // have a bit</span>
+<span class="lineNum">     398 </span><span class="lineCov">      24208 :             *pval |= bit&lt;&lt;i;</span>
+<span class="lineNum">     399 </span>            :         } else { // ran out of bits. fail
+<span class="lineNum">     400 </span><span class="lineCov">          6 :             ret = 0;</span>
+<span class="lineNum">     401 </span><span class="lineCov">          6 :             break;</span>
+<span class="lineNum">     402 </span>            :         }
+<span class="lineNum">     403 </span>            :     }
+<span class="lineNum">     404 </span><span class="lineCov">       2988 :     return ret;</span>
+<a name="405"><span class="lineNum">     405 </span>            : }</a>
+<span class="lineNum">     406 </span>            : 
+<span class="lineNum">     407 </span><span class="lineCov">   25066534 : LOCO_PRIVATE I32 deloco_read_bit (LocoDecompressState * deloco)</span>
+<span class="lineNum">     408 </span>            : {
+<span class="lineNum">     409 </span>            :     I32 bit;
+<span class="lineNum">     410 </span>            : 
+<span class="lineNum">     411 </span><span class="lineCov">   25066534 :     if (deloco-&gt;bit_count &lt; deloco-&gt;seg_data_bits) {</span>
+<span class="lineNum">     412 </span><span class="lineCov">   25044465 :         bit = !!(deloco-&gt;data_start[deloco-&gt;bit_count/8] &amp; (1&lt;&lt;(7-deloco-&gt;bit_count%8)));</span>
+<span class="lineNum">     413 </span><span class="lineCov">   25044465 :         deloco-&gt;bit_count++;</span>
+<span class="lineNum">     414 </span><span class="lineCov">   25044465 :         return bit;</span>
+<span class="lineNum">     415 </span>            :     } else {
+<span class="lineNum">     416 </span><span class="lineCov">      22069 :         deloco-&gt;out_of_bits = 1;</span>
+<span class="lineNum">     417 </span><span class="lineCov">      22069 :         return -1;</span>
+<span class="lineNum">     418 </span>            :     }
+<a name="419"><span class="lineNum">     419 </span>            : }</a>
+<span class="lineNum">     420 </span>            : 
+<span class="lineNum">     421 </span><span class="lineCov">        414 : LOCO_PRIVATE I32 deloco_decompress_segment(LocoDecompressState * deloco, I32 seg)</span>
+<span class="lineNum">     422 </span>            : {
+<span class="lineNum">     423 </span><span class="lineCov">        414 :     LOCO_ASSERT(deloco != NULL);</span>
+<span class="lineNum">     424 </span><span class="lineCov">        414 :     LOCO_ASSERT_1(0 &lt;= seg &amp;&amp; seg &lt; LOCO_MAX_SEGS, seg);</span>
+<span class="lineNum">     425 </span>            : 
+<span class="lineNum">     426 </span>            :     I32 xstart;
+<span class="lineNum">     427 </span>            :     I32 xend;
+<span class="lineNum">     428 </span>            :     I32 ystart;
+<span class="lineNum">     429 </span>            :     I32 yend;
+<span class="lineNum">     430 </span>            :     I32 i;
+<span class="lineNum">     431 </span>            :     I32 est;
+<span class="lineNum">     432 </span>            :     I32 bias;
+<span class="lineNum">     433 </span>            :     I32 residual;
+<span class="lineNum">     434 </span>            :     I32 n;
+<span class="lineNum">     435 </span>            :     I32 msum;
+<span class="lineNum">     436 </span>            :     I32 sum;
+<span class="lineNum">     437 </span>            :     I32 k;
+<span class="lineNum">     438 </span>            :     I32 x;
+<span class="lineNum">     439 </span>            :     I32 y;
+<span class="lineNum">     440 </span>            :     I32 value;
+<span class="lineNum">     441 </span>            :     I32 n_missing;
+<span class="lineNum">     442 </span>            : 
+<span class="lineNum">     443 </span><span class="lineCov">        414 :     n_missing = 0;</span>
+<span class="lineNum">     444 </span>            : 
+<span class="lineNum">     445 </span>            :     /* Get segment rectangle */
+<span class="lineNum">     446 </span><span class="lineCov">        414 :     xstart = deloco-&gt;seg_bound[seg].xstart;</span>
+<span class="lineNum">     447 </span><span class="lineCov">        414 :     xend = deloco-&gt;seg_bound[seg].xend;</span>
+<span class="lineNum">     448 </span><span class="lineCov">        414 :     ystart = deloco-&gt;seg_bound[seg].ystart;</span>
+<span class="lineNum">     449 </span><span class="lineCov">        414 :     yend = deloco-&gt;seg_bound[seg].yend;</span>
+<span class="lineNum">     450 </span>            : 
+<span class="lineNum">     451 </span>            :     /* Initialize parameters that depend on the bit depth */
+<span class="lineNum">     452 </span><span class="lineCov">        414 :     if (deloco-&gt;header_code == HEADER_CODE_FOR_8BIT) {</span>
+<span class="lineNum">     453 </span><span class="lineCov">        155 :         deloco-&gt;bitdepth = BITDEPTH_8BIT;</span>
+<span class="lineNum">     454 </span><span class="lineCov">        155 :         deloco-&gt;maxn = MAXN_8BIT;</span>
+<span class="lineNum">     455 </span><span class="lineCov">        155 :         deloco-&gt;pmax = PMAX_8BIT;</span>
+<span class="lineNum">     456 </span><span class="lineCov">        155 :         deloco-&gt;prange = PRANGE_8BIT;</span>
+<span class="lineNum">     457 </span><span class="lineCov">        155 :         deloco-&gt;rmin = RMIN_8BIT;</span>
+<span class="lineNum">     458 </span><span class="lineCov">        155 :         deloco-&gt;rmax = RMAX_8BIT;</span>
+<span class="lineNum">     459 </span><span class="lineCov">        155 :         deloco-&gt;initcc = INITCC_8BIT;</span>
+<span class="lineNum">     460 </span><span class="lineCov">        155 :         deloco-&gt;initcms = INITCMS_8BIT;</span>
+<span class="lineNum">     461 </span>            :     } else {
+<span class="lineNum">     462 </span><span class="lineCov">        259 :         deloco-&gt;bitdepth = BITDEPTH_12BIT;</span>
+<span class="lineNum">     463 </span><span class="lineCov">        259 :         deloco-&gt;maxn = MAXN_12BIT;</span>
+<span class="lineNum">     464 </span><span class="lineCov">        259 :         deloco-&gt;pmax = PMAX_12BIT;</span>
+<span class="lineNum">     465 </span><span class="lineCov">        259 :         deloco-&gt;prange = PRANGE_12BIT;</span>
+<span class="lineNum">     466 </span><span class="lineCov">        259 :         deloco-&gt;rmin = RMIN_12BIT;</span>
+<span class="lineNum">     467 </span><span class="lineCov">        259 :         deloco-&gt;rmax = RMAX_12BIT;</span>
+<span class="lineNum">     468 </span><span class="lineCov">        259 :         deloco-&gt;initcc = INITCC_12BIT;</span>
+<span class="lineNum">     469 </span><span class="lineCov">        259 :         deloco-&gt;initcms = INITCMS_12BIT;</span>
+<span class="lineNum">     470 </span>            :     }
+<span class="lineNum">     471 </span>            : 
+<span class="lineNum">     472 </span>            :     /* Initialize context statistics */
+<span class="lineNum">     473 </span><span class="lineCov">     424350 :     for (i=0;i&lt;LOCO_NCONTEXTS;i++) {</span>
+<span class="lineNum">     474 </span><span class="lineCov">     423936 :         deloco-&gt;c_count[i] = deloco-&gt;initcc;</span>
+<span class="lineNum">     475 </span><span class="lineCov">     423936 :         deloco-&gt;c_mag_sum[i] = deloco-&gt;initcms;</span>
+<span class="lineNum">     476 </span><span class="lineCov">     423936 :         deloco-&gt;c_sum[i] = 0;</span>
+<span class="lineNum">     477 </span><span class="lineCov">     423936 :         deloco-&gt;c_bias[i] = 0;</span>
+<span class="lineNum">     478 </span>            :     }
+<span class="lineNum">     479 </span>            : 
+<span class="lineNum">     480 </span>            :     /* Read first two pixels directly */
+<span class="lineNum">     481 </span><span class="lineCov">        414 :     (void)deloco_read_int(deloco, &amp;value, deloco-&gt;bitdepth);</span>
+<span class="lineNum">     482 </span><span class="lineCov">        414 :     deloco-&gt;image[ystart][xstart]=value;</span>
+<span class="lineNum">     483 </span><span class="lineCov">        414 :     (void)deloco_read_int(deloco, &amp;value, deloco-&gt;bitdepth);</span>
+<span class="lineNum">     484 </span><span class="lineCov">        414 :     deloco-&gt;image[ystart][xstart+1]=value;</span>
+<span class="lineNum">     485 </span>            : 
+<span class="lineNum">     486 </span>            :     /*
+<span class="lineNum">     487 </span>            :       Main decoding loop
+<span class="lineNum">     488 </span>            :     */
+<span class="lineNum">     489 </span><span class="lineCov">      39879 :     for (y=ystart; y&lt;yend; y++) {</span>
+<span class="lineNum">     490 </span><span class="lineCov">    4139757 :         for (x=xstart+2*(y==ystart); x&lt;xend; x++) {</span>
+<span class="lineNum">     491 </span>            :             /* Determine context */
+<span class="lineNum">     492 </span><span class="lineCov">    4100292 :             deloco_find_context(deloco, x, y, xstart, xend, ystart);</span>
+<span class="lineNum">     493 </span>            : 
+<span class="lineNum">     494 </span>            :             /* Compute pixel estimate, incorporating the context-based bias */
+<span class="lineNum">     495 </span><span class="lineCov">    4100292 :             bias = deloco-&gt;c_bias[deloco-&gt;context];</span>
+<span class="lineNum">     496 </span><span class="lineCov">    4100292 :             if (deloco-&gt;invert_flag) {</span>
+<span class="lineNum">     497 </span><span class="lineCov">    1284897 :                 est = deloco_estimate(deloco, x, y, xstart, ystart) - bias;</span>
+<span class="lineNum">     498 </span>            :             } else {
+<span class="lineNum">     499 </span><span class="lineCov">    2815395 :                 est = deloco_estimate(deloco, x, y, xstart, ystart) + bias;</span>
+<span class="lineNum">     500 </span>            :             }
+<span class="lineNum">     501 </span>            : 
+<span class="lineNum">     502 </span>            :             /* Clip estimate to allowed range */
+<span class="lineNum">     503 </span><span class="lineCov">    4100292 :             if (est &lt; 0) {</span>
+<span class="lineNum">     504 </span><span class="lineCov">      16708 :                 est = 0;</span>
+<span class="lineNum">     505 </span><span class="lineCov">    4083584 :             } else if (est &gt; deloco-&gt;pmax) {</span>
+<span class="lineNum">     506 </span><span class="lineCov">      17402 :                 est = deloco-&gt;pmax;</span>
+<span class="lineNum">     507 </span>            :             } else {
+<span class="lineNum">     508 </span>            :                 // in allowed range already
+<span class="lineNum">     509 </span>            :             }
+<span class="lineNum">     510 </span>            : 
+<span class="lineNum">     511 </span>            :             /* Retrieve count and sums for the context.  A mask is
+<span class="lineNum">     512 </span>            :                applied to the magnitude sum as a precaution, ensuring that
+<span class="lineNum">     513 </span>            :                the computation of k goes smoothly.  */
+<span class="lineNum">     514 </span><span class="lineCov">    4100292 :             n = deloco-&gt;c_count[deloco-&gt;context];</span>
+<span class="lineNum">     515 </span><span class="lineCov">    4100292 :             msum = deloco-&gt;c_mag_sum[deloco-&gt;context] &amp; MSUM_MASK;</span>
+<span class="lineNum">     516 </span><span class="lineCov">    4100292 :             sum = deloco-&gt;c_sum[deloco-&gt;context];</span>
+<span class="lineNum">     517 </span>            : 
+<span class="lineNum">     518 </span>            :             /* Compute Golomb-Rice parameter k */
+<span class="lineNum">     519 </span><span class="lineCov">    4100292 :             k=0;</span>
+<span class="lineNum">     520 </span><span class="lineCov">   25716663 :             while ((n&lt;&lt;k)&lt;=msum) {</span>
+<span class="lineNum">     521 </span><span class="lineCov">   17516079 :                 k++;</span>
+<span class="lineNum">     522 </span>            :             }
+<span class="lineNum">     523 </span>            : 
+<span class="lineNum">     524 </span>            :             /* (Formerly limited k to a maximum here, but was not really
+<span class="lineNum">     525 </span>            :                 necessary as long as the decoder does the same thing
+<span class="lineNum">     526 </span>            :                 as the encoder) */
+<span class="lineNum">     527 </span>            : 
+<span class="lineNum">     528 </span>            :             /* Decode residual */
+<span class="lineNum">     529 </span><span class="lineCov">    4100292 :             residual = deloco_decode_value(deloco, k);</span>
+<span class="lineNum">     530 </span>            : 
+<span class="lineNum">     531 </span>            :             /* Adjust sum and bias */
+<span class="lineNum">     532 </span><span class="lineCov">    4100292 :             sum += residual;</span>
+<span class="lineNum">     533 </span><span class="lineCov">    4100292 :             n++;</span>
+<span class="lineNum">     534 </span><span class="lineCov">    4100292 :             if (sum &gt; 0) {</span>
+<span class="lineNum">     535 </span><span class="lineCov">     860202 :                 bias++;</span>
+<span class="lineNum">     536 </span><span class="lineCov">     860202 :                 sum -= n;</span>
+<span class="lineNum">     537 </span><span class="lineCov">    3240090 :             } else if (sum &lt; -n) {</span>
+<span class="lineNum">     538 </span><span class="lineCov">    1453796 :                 bias--;</span>
+<span class="lineNum">     539 </span><span class="lineCov">    1453796 :                 sum += n;</span>
+<span class="lineNum">     540 </span>            :             } else {
+<span class="lineNum">     541 </span>            :                 // no adjustment
+<span class="lineNum">     542 </span>            :             }
+<span class="lineNum">     543 </span>            : 
+<span class="lineNum">     544 </span>            :             /* Undo range-based residual remapping */
+<span class="lineNum">     545 </span><span class="lineCov">    4100292 :             if (residual &lt; 0) {</span>
+<span class="lineNum">     546 </span><span class="lineCov">    1443550 :                 msum -= residual;</span>
+<span class="lineNum">     547 </span>            :             } else {
+<span class="lineNum">     548 </span><span class="lineCov">    2656742 :                 msum += residual;</span>
+<span class="lineNum">     549 </span>            :             }
+<span class="lineNum">     550 </span>            : 
+<span class="lineNum">     551 </span>            :             /* Normalize sums if necessary */
+<span class="lineNum">     552 </span><span class="lineCov">    4100292 :             if (n==deloco-&gt;maxn) {</span>
+<span class="lineNum">     553 </span><span class="lineCov">      64244 :                 n &gt;&gt;= 1;</span>
+<span class="lineNum">     554 </span><span class="lineCov">      64244 :                 msum &gt;&gt;= 1;</span>
+<span class="lineNum">     555 </span><span class="lineCov">      64244 :                 sum &gt;&gt;= 1;  /* NOTE: sign extension required (may not be portable) */</span>
+<span class="lineNum">     556 </span>            :             }
+<span class="lineNum">     557 </span>            : 
+<span class="lineNum">     558 </span>            :             /* Store updated context information */
+<span class="lineNum">     559 </span><span class="lineCov">    4100292 :             deloco-&gt;c_count[deloco-&gt;context] = n;</span>
+<span class="lineNum">     560 </span><span class="lineCov">    4100292 :             deloco-&gt;c_mag_sum[deloco-&gt;context] = msum;</span>
+<span class="lineNum">     561 </span><span class="lineCov">    4100292 :             deloco-&gt;c_sum[deloco-&gt;context] = sum;</span>
+<span class="lineNum">     562 </span><span class="lineCov">    4100292 :             deloco-&gt;c_bias[deloco-&gt;context] = bias;</span>
+<span class="lineNum">     563 </span>            : 
+<span class="lineNum">     564 </span>            :             /* Recover pixel value from residual */
+<span class="lineNum">     565 </span><span class="lineCov">    4100292 :             if (deloco-&gt;invert_flag) {</span>
+<span class="lineNum">     566 </span><span class="lineCov">    1284897 :                 residual = -residual;</span>
+<span class="lineNum">     567 </span>            :             }
+<span class="lineNum">     568 </span><span class="lineCov">    4100292 :             value = est + residual;</span>
+<span class="lineNum">     569 </span><span class="lineCov">    4100292 :             if (value &lt; 0) {</span>
+<span class="lineNum">     570 </span><span class="lineCov">      62019 :                 value += deloco-&gt;prange;</span>
+<span class="lineNum">     571 </span><span class="lineCov">    4038273 :             } else if (value &gt; deloco-&gt;pmax) {</span>
+<span class="lineNum">     572 </span><span class="lineCov">      62176 :                 value -= deloco-&gt;prange;</span>
+<span class="lineNum">     573 </span>            :             } else {
+<span class="lineNum">     574 </span>            :                 // no adjustment
+<span class="lineNum">     575 </span>            :             }
+<span class="lineNum">     576 </span>            : 
+<span class="lineNum">     577 </span>            :             /* Put pixel value into image */
+<span class="lineNum">     578 </span><span class="lineCov">    4100292 :             if (!deloco-&gt;out_of_bits) {</span>
+<span class="lineNum">     579 </span><span class="lineCov">    4079476 :                 deloco-&gt;image[y][x] = value;</span>
+<span class="lineNum">     580 </span>            :             } else {
+<span class="lineNum">     581 </span><span class="lineCov">      20816 :                 n_missing++;</span>
+<span class="lineNum">     582 </span>            :             }
+<span class="lineNum">     583 </span>            :         }
+<span class="lineNum">     584 </span>            :     }
+<span class="lineNum">     585 </span>            : 
+<span class="lineNum">     586 </span>            :     /* Report how many, if any, pixels were not decompressed due to running
+<span class="lineNum">     587 </span>            :        out of compressed data before decompression of the segment was finished */
+<span class="lineNum">     588 </span><span class="lineCov">        414 :     return n_missing;</span>
+<span class="lineNum">     589 </span>            : }
+<span class="lineNum">     590 </span>            : 
+<span class="lineNum">     591 </span>            : 
+<a name="592"><span class="lineNum">     592 </span>            : </a>
+<span class="lineNum">     593 </span>            : 
+<span class="lineNum">     594 </span><span class="lineCov">    4100292 : LOCO_PRIVATE I32 deloco_decode_value(LocoDecompressState * deloco, I32 k)</span>
+<span class="lineNum">     595 </span>            : {
+<span class="lineNum">     596 </span>            :     I32 i;
+<span class="lineNum">     597 </span>            :     I32 v;
+<span class="lineNum">     598 </span>            : 
+<span class="lineNum">     599 </span><span class="lineCov">    4100292 :     v = 0;</span>
+<span class="lineNum">     600 </span><span class="lineCov">   21616371 :     for (i=0; i&lt;k; i++) {</span>
+<span class="lineNum">     601 </span><span class="lineCov">   17516079 :         v |= (deloco_read_bit(deloco) &lt;&lt; i);</span>
+<span class="lineNum">     602 </span>            :     }
+<span class="lineNum">     603 </span><span class="lineCov">   11626533 :     while (!deloco_read_bit(deloco) &amp;&amp; !deloco-&gt;out_of_bits) {</span>
+<span class="lineNum">     604 </span><span class="lineCov">    3425949 :         v += 01&lt;&lt;k;</span>
+<span class="lineNum">     605 </span>            :     }
+<span class="lineNum">     606 </span>            : 
+<span class="lineNum">     607 </span><span class="lineCov">    4100292 :     if (v &amp; 01) {</span>
+<span class="lineNum">     608 </span><span class="lineCov">    1443896 :         v = -((v+1) &gt;&gt; 1);  /* A simpler expression is available */</span>
+<span class="lineNum">     609 </span>            :     } else {
+<span class="lineNum">     610 </span><span class="lineCov">    2656396 :         v &gt;&gt;= 1;</span>
+<span class="lineNum">     611 </span>            :     }
+<span class="lineNum">     612 </span>            : 
+<span class="lineNum">     613 </span><span class="lineCov">    4100292 :     return v;</span>
+<span class="lineNum">     614 </span>            : }
+<span class="lineNum">     615 </span>            : 
+<a name="616"><span class="lineNum">     616 </span>            : </a>
+<span class="lineNum">     617 </span>            : 
+<span class="lineNum">     618 </span><span class="lineCov">    4100292 : LOCO_PRIVATE void deloco_find_context(LocoDecompressState * deloco,</span>
+<span class="lineNum">     619 </span>            :         I32 x, I32 y, I32 xstart, I32 xend, I32 ystart)
+<span class="lineNum">     620 </span>            : {
+<span class="lineNum">     621 </span>            :     I32 ctxt1;
+<span class="lineNum">     622 </span>            :     I32 ctxt2;
+<span class="lineNum">     623 </span>            :     I32 ctxt3;
+<span class="lineNum">     624 </span>            :     I32 ctxt4;
+<span class="lineNum">     625 </span>            : 
+<span class="lineNum">     626 </span>            :     I32 f1;
+<span class="lineNum">     627 </span>            :     I32 f3;
+<span class="lineNum">     628 </span>            :     I32 f4;
+<span class="lineNum">     629 </span>            : 
+<span class="lineNum">     630 </span><span class="lineCov">    4100292 :     f1 = 0;</span>
+<span class="lineNum">     631 </span><span class="lineCov">    4100292 :     f3 = 0;</span>
+<span class="lineNum">     632 </span><span class="lineCov">    4100292 :     f4 = 0;</span>
+<span class="lineNum">     633 </span>            : 
+<span class="lineNum">     634 </span><span class="lineCov">    4100292 :     if (y==ystart) {</span>
+<span class="lineNum">     635 </span><span class="lineCov">      79624 :         ctxt4 = deloco_gfour_to_ctxt(deloco, (I32)deloco-&gt;image[y][x-1]</span>
+<span class="lineNum">     636 </span><span class="lineCov">      39812 :                 - (I32)deloco-&gt;image[y][x-2]);</span>
+<span class="lineNum">     637 </span><span class="lineCov">      39812 :         ctxt1 = 00;</span>
+<span class="lineNum">     638 </span><span class="lineCov">      39812 :         f1=1;</span>
+<span class="lineNum">     639 </span><span class="lineCov">      39812 :         ctxt2 = 00;</span>
+<span class="lineNum">     640 </span><span class="lineCov">      39812 :         ctxt3 = 00;</span>
+<span class="lineNum">     641 </span><span class="lineCov">      39812 :         f3=1;</span>
+<span class="lineNum">     642 </span><span class="lineCov">    4060480 :     } else if (x==xend-1) {</span>
+<span class="lineNum">     643 </span><span class="lineCov">      78102 :         ctxt4 = deloco_gfour_to_ctxt(deloco, (I32)deloco-&gt;image[y][x-1]</span>
+<span class="lineNum">     644 </span><span class="lineCov">      39051 :                 - (I32)deloco-&gt;image[y][x-2]);</span>
+<span class="lineNum">     645 </span><span class="lineCov">      39051 :         ctxt1 = 00;</span>
+<span class="lineNum">     646 </span><span class="lineCov">      39051 :         f1=1;</span>
+<span class="lineNum">     647 </span><span class="lineCov">      78102 :         ctxt2 = deloco_g_to_ctxt(deloco, (I32)deloco-&gt;image[y-1][x]</span>
+<span class="lineNum">     648 </span><span class="lineCov">      39051 :                 - (I32)deloco-&gt;image[y-1][x-1]);</span>
+<span class="lineNum">     649 </span><span class="lineCov">      78102 :         ctxt3 = deloco_g_to_ctxt(deloco, (I32)deloco-&gt;image[y-1][x-1]</span>
+<span class="lineNum">     650 </span><span class="lineCov">      39051 :                 - (I32)deloco-&gt;image[y][x-1]);</span>
+<span class="lineNum">     651 </span><span class="lineCov">    4021429 :     } else if (x==xstart) {</span>
+<span class="lineNum">     652 </span><span class="lineCov">      39051 :         ctxt4 = 00;</span>
+<span class="lineNum">     653 </span><span class="lineCov">      39051 :         f4=1;</span>
+<span class="lineNum">     654 </span><span class="lineCov">      78102 :         ctxt1 = deloco_g_to_ctxt(deloco, (I32)deloco-&gt;image[y-1][x+1]</span>
+<span class="lineNum">     655 </span><span class="lineCov">      39051 :                 - (I32)deloco-&gt;image[y-1][x]);</span>
+<span class="lineNum">     656 </span><span class="lineCov">      39051 :         ctxt2 = 00;</span>
+<span class="lineNum">     657 </span><span class="lineCov">      39051 :         ctxt3 = 00;</span>
+<span class="lineNum">     658 </span><span class="lineCov">      39051 :         f3=1;</span>
+<span class="lineNum">     659 </span><span class="lineCov">    3982378 :     } else if (x==xstart+1) {</span>
+<span class="lineNum">     660 </span><span class="lineCov">      39051 :         ctxt4 = 00;</span>
+<span class="lineNum">     661 </span><span class="lineCov">      39051 :         f4=1;</span>
+<span class="lineNum">     662 </span><span class="lineCov">      78102 :         ctxt1 = deloco_g_to_ctxt(deloco, (I32)deloco-&gt;image[y-1][x+1]</span>
+<span class="lineNum">     663 </span><span class="lineCov">      39051 :                 - (I32)deloco-&gt;image[y-1][x]);</span>
+<span class="lineNum">     664 </span><span class="lineCov">      78102 :         ctxt2 = deloco_g_to_ctxt(deloco, (I32)deloco-&gt;image[y-1][x]</span>
+<span class="lineNum">     665 </span><span class="lineCov">      39051 :                 - (I32)deloco-&gt;image[y-1][x-1]);</span>
+<span class="lineNum">     666 </span><span class="lineCov">      78102 :         ctxt3 = deloco_g_to_ctxt(deloco, (I32)deloco-&gt;image[y-1][x-1]</span>
+<span class="lineNum">     667 </span><span class="lineCov">      39051 :                 - (I32)deloco-&gt;image[y][x-1]);</span>
+<span class="lineNum">     668 </span>            :     } else {
+<span class="lineNum">     669 </span><span class="lineCov">    7886654 :         ctxt4 = deloco_gfour_to_ctxt(deloco, (I32)deloco-&gt;image[y][x-1]</span>
+<span class="lineNum">     670 </span><span class="lineCov">    3943327 :                 - (I32)deloco-&gt;image[y][x-2]);</span>
+<span class="lineNum">     671 </span><span class="lineCov">    7886654 :         ctxt1 = deloco_g_to_ctxt(deloco, (I32)deloco-&gt;image[y-1][x+1]</span>
+<span class="lineNum">     672 </span><span class="lineCov">    3943327 :                 - (I32)deloco-&gt;image[y-1][x]);</span>
+<span class="lineNum">     673 </span><span class="lineCov">    7886654 :         ctxt2 = deloco_g_to_ctxt(deloco, (I32)deloco-&gt;image[y-1][x]</span>
+<span class="lineNum">     674 </span><span class="lineCov">    3943327 :                 - (I32)deloco-&gt;image[y-1][x-1]);</span>
+<span class="lineNum">     675 </span><span class="lineCov">    7886654 :         ctxt3 = deloco_g_to_ctxt(deloco, (I32)deloco-&gt;image[y-1][x-1]</span>
+<span class="lineNum">     676 </span><span class="lineCov">    3943327 :                 - (I32)deloco-&gt;image[y][x-1]);</span>
+<span class="lineNum">     677 </span>            :     }
+<span class="lineNum">     678 </span><span class="lineCov">    4100292 :     if ((ctxt2 &amp; 04) || (!ctxt2 &amp;&amp; ((ctxt1 &amp; 04) || (!ctxt1 &amp;&amp; ((ctxt3 &amp; 04)</span>
+<span class="lineNum">     679 </span><span class="lineCov">    1557245 :             || (!ctxt3 &amp;&amp; (ctxt4 &amp; 02))))))) {</span>
+<span class="lineNum">     680 </span><span class="lineCov">    1284897 :         deloco-&gt;invert_flag = 1;</span>
+<span class="lineNum">     681 </span><span class="lineCov">    1284897 :         if (ctxt2)</span>
+<span class="lineNum">     682 </span><span class="lineCov">    1125265 :             ctxt2 ^= 04;</span>
+<span class="lineNum">     683 </span><span class="lineCov">    1284897 :         if (ctxt1)</span>
+<span class="lineNum">     684 </span><span class="lineCov">    1126206 :             ctxt1 ^= 04;</span>
+<span class="lineNum">     685 </span><span class="lineCov">    1284897 :         if (ctxt3)</span>
+<span class="lineNum">     686 </span><span class="lineCov">    1115941 :             ctxt3 ^= 04;</span>
+<span class="lineNum">     687 </span><span class="lineCov">    2569794 :         if (ctxt4)</span>
+<span class="lineNum">     688 </span><span class="lineCov">     790512 :             ctxt4 ^= 02;</span>
+<span class="lineNum">     689 </span>            :     } else {
+<span class="lineNum">     690 </span><span class="lineCov">    2815395 :         deloco-&gt;invert_flag = 0;</span>
+<span class="lineNum">     691 </span>            :     }
+<span class="lineNum">     692 </span><span class="lineCov">    4100292 :     deloco-&gt;context = ctxt4 | (ctxt3 &lt;&lt; 2) | (ctxt1 &lt;&lt; 5) | (ctxt2 &lt;&lt; 8);</span>
+<span class="lineNum">     693 </span><span class="lineCov">    4100292 :     deloco-&gt;context |= (f4 &lt;&lt; 1) | (f3 &lt;&lt; 4) | (f1 &lt;&lt; 7);</span>
+<span class="lineNum">     694 </span><span class="lineCov">    4100292 : }</span>
+<a name="695"><span class="lineNum">     695 </span>            : </a>
+<span class="lineNum">     696 </span>            : 
+<span class="lineNum">     697 </span><span class="lineCov">   12064287 : LOCO_PRIVATE I32 deloco_g_to_ctxt(LocoDecompressState * deloco, I32 g)</span>
+<span class="lineNum">     698 </span>            : {
+<span class="lineNum">     699 </span><span class="lineCov">   15269526 :     return (deloco-&gt;header_code == HEADER_CODE_FOR_8BIT) ? G_TO_CTXT_8BIT(g)</span>
+<span class="lineNum">     700 </span><span class="lineCov">   15269526 :                                                          : G_TO_CTXT_12BIT(g);</span>
+<span class="lineNum">     701 </span>            : }
+<a name="702"><span class="lineNum">     702 </span>            : </a>
+<span class="lineNum">     703 </span>            : 
+<span class="lineNum">     704 </span><span class="lineCov">    4022190 : LOCO_PRIVATE I32 deloco_gfour_to_ctxt(LocoDecompressState * deloco, I32 g)</span>
+<span class="lineNum">     705 </span>            : {
+<span class="lineNum">     706 </span><span class="lineCov">    5091666 :     return (deloco-&gt;header_code == HEADER_CODE_FOR_8BIT) ? GFOUR_TO_CTXT_8BIT(g)</span>
+<span class="lineNum">     707 </span><span class="lineCov">    5091666 :                                                          : GFOUR_TO_CTXT_12BIT(g);</span>
+<span class="lineNum">     708 </span>            : }
+<a name="709"><span class="lineNum">     709 </span>            : </a>
+<span class="lineNum">     710 </span>            : 
+<span class="lineNum">     711 </span><span class="lineCov">    4100292 : LOCO_PRIVATE I32 deloco_estimate(LocoDecompressState * deloco,</span>
+<span class="lineNum">     712 </span>            :         I32 x, I32 y, I32 xstart, I32 ystart)
+<span class="lineNum">     713 </span>            : {
+<span class="lineNum">     714 </span><span class="lineCov">    4100292 :     LOCO_ASSERT(deloco != NULL);</span>
+<span class="lineNum">     715 </span>            : 
+<span class="lineNum">     716 </span>            :     I32 a;
+<span class="lineNum">     717 </span>            :     I32 b;
+<span class="lineNum">     718 </span>            :     I32 c;
+<span class="lineNum">     719 </span>            :     I32 t;
+<span class="lineNum">     720 </span>            :     I32 est;
+<span class="lineNum">     721 </span>            : 
+<span class="lineNum">     722 </span><span class="lineCov">    4100292 :     if (x==xstart) {</span>
+<span class="lineNum">     723 </span><span class="lineCov">      39051 :         est = deloco-&gt;image[y-1][x];</span>
+<span class="lineNum">     724 </span><span class="lineCov">    4061241 :     } else if (y==ystart) {</span>
+<span class="lineNum">     725 </span><span class="lineCov">      39812 :         est = deloco-&gt;image[y][x-1];</span>
+<span class="lineNum">     726 </span>            :     } else {
+<span class="lineNum">     727 </span><span class="lineCov">    4021429 :         a = deloco-&gt;image[y-1][x];</span>
+<span class="lineNum">     728 </span><span class="lineCov">    4021429 :         b = deloco-&gt;image[y][x-1];</span>
+<span class="lineNum">     729 </span><span class="lineCov">    4021429 :         c = deloco-&gt;image[y-1][x-1];</span>
+<span class="lineNum">     730 </span><span class="lineCov">    4021429 :         if (a&gt;b) {</span>
+<span class="lineNum">     731 </span><span class="lineCov">    1272360 :             t=a;</span>
+<span class="lineNum">     732 </span><span class="lineCov">    1272360 :             a=b;</span>
+<span class="lineNum">     733 </span><span class="lineCov">    1272360 :             b=t;</span>
+<span class="lineNum">     734 </span>            :         }
+<span class="lineNum">     735 </span><span class="lineCov">    4021429 :         if (c&gt;=b) {</span>
+<span class="lineNum">     736 </span><span class="lineCov">    2314859 :             est = a;</span>
+<span class="lineNum">     737 </span><span class="lineCov">    1706570 :         } else if (c&lt;=a) {</span>
+<span class="lineNum">     738 </span><span class="lineCov">     864552 :             est = b;</span>
+<span class="lineNum">     739 </span>            :         } else {
+<span class="lineNum">     740 </span><span class="lineCov">     842018 :             est = a+b-c;</span>
+<span class="lineNum">     741 </span>            :         }
+<span class="lineNum">     742 </span>            :     }
+<span class="lineNum">     743 </span>            : 
+<span class="lineNum">     744 </span><span class="lineCov">    4100292 :     return est;</span>
+<span class="lineNum">     745 </span>            : }
+<span class="lineNum">     746 </span>            : 
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

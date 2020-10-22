@@ -1,0 +1,1142 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - coverage.info.cleaned - src/loco_compress.c</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - loco_compress.c<span style="font-size: 80%;"> (source / <a href="loco_compress.c.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">coverage.info.cleaned</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">330</td>
+            <td class="headerCovTableEntry">330</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2020-10-22 11:54:06</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">6</td>
+            <td class="headerCovTableEntry">6</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /***********************************************************************</a>
+<span class="lineNum">       2 </span>            :  * Copyright 2003, 2020 by the California Institute of Technology
+<span class="lineNum">       3 </span>            :  * ALL RIGHTS RESERVED. United States Government Sponsorship acknowledged.
+<span class="lineNum">       4 </span>            :  *
+<span class="lineNum">       5 </span>            :  * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+<span class="lineNum">       6 </span>            :  * you may not use this file except in compliance with the License.
+<span class="lineNum">       7 </span>            :  * You may obtain a copy of the License at
+<span class="lineNum">       8 </span>            :  *
+<span class="lineNum">       9 </span>            :  *     http://www.apache.org/licenses/LICENSE-2.0
+<span class="lineNum">      10 </span>            :  *
+<span class="lineNum">      11 </span>            :  * Unless required by applicable law or agreed to in writing, software
+<span class="lineNum">      12 </span>            :  * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+<span class="lineNum">      13 </span>            :  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+<span class="lineNum">      14 </span>            :  * See the License for the specific language governing permissions and
+<span class="lineNum">      15 </span>            :  * limitations under the License.
+<span class="lineNum">      16 </span>            :  *
+<span class="lineNum">      17 </span>            :  * @file        loco_compress.c
+<span class="lineNum">      18 </span>            :  * @date        2020-06-15
+<span class="lineNum">      19 </span>            :  * @author      Matthew Klimesh, Aaron Kiely, Neil Abcouwer
+<span class="lineNum">      20 </span>            :  * @brief       Function definitions for LOCO compression
+<span class="lineNum">      21 </span>            :  *
+<span class="lineNum">      22 </span>            :  * This software is based on the LOCO-I algorithm which is
+<span class="lineNum">      23 </span>            :  *   described in:
+<span class="lineNum">      24 </span>            :  *
+<span class="lineNum">      25 </span>            :  *   Marcelo J. Weinberger, Gadiel Seroussi and Guillermo Sapiro,
+<span class="lineNum">      26 </span>            :  *     &quot;LOCO-I: A Low Complexity, Context-Based, Lossless Image
+<span class="lineNum">      27 </span>            :  *     Compression Algorithm&quot;, in Proc. Data Compression Conference
+<span class="lineNum">      28 </span>            :  *     (DCC '96), pp. 140-149, 1996.
+<span class="lineNum">      29 </span>            :  *
+<span class="lineNum">      30 </span>            :  * This implementation originates with Matt Klimesh and Aaron Kiely's
+<span class="lineNum">      31 </span>            :  * implementation for MER, and was modified by Neil Abcouwer.
+<span class="lineNum">      32 </span>            :  *
+<span class="lineNum">      33 </span>            :  * This implementation lacks the run length encoding (&quot;embedded
+<span class="lineNum">      34 </span>            :  * alphabet extension&quot;) of LOCO-I.  There are other differences as well.
+<span class="lineNum">      35 </span>            :  *
+<span class="lineNum">      36 </span>            :  */
+<span class="lineNum">      37 </span>            : 
+<span class="lineNum">      38 </span>            : #include &lt;loco/loco_pub.h&gt;
+<span class="lineNum">      39 </span>            : #include &lt;loco/loco_conf_private.h&gt;
+<span class="lineNum">      40 </span>            : #include &lt;loco/loco_private.h&gt;
+<span class="lineNum">      41 </span>            : 
+<span class="lineNum">      42 </span>            : /*
+<span class="lineNum">      43 </span>            :   WRITE_BIT(bit) macro
+<span class="lineNum">      44 </span>            :   Formerly used for all writing of bits in the encoded segments, now only used
+<span class="lineNum">      45 </span>            :   for some.
+<span class="lineNum">      46 </span>            : 
+<span class="lineNum">      47 </span>            :   The braces around this macro make semicolons after calls to WRITE_BIT() redundant,
+<span class="lineNum">      48 </span>            :   but these extra semicolons don't cause any trouble.
+<span class="lineNum">      49 </span>            : */
+<span class="lineNum">      50 </span>            : #define WRITE_BIT(bit) \
+<span class="lineNum">      51 </span>            : { \
+<span class="lineNum">      52 </span>            :     state-&gt;out_word |= (bit)&lt;&lt;(state-&gt;bit_count); \
+<span class="lineNum">      53 </span>            :     --state-&gt;bit_count; \
+<span class="lineNum">      54 </span>            :     if (state-&gt;bit_count == -1) { \
+<span class="lineNum">      55 </span>            :         state-&gt;bit_count = 8*sizeof(LocoBitstreamType)-1; \
+<span class="lineNum">      56 </span>            :         if (state-&gt;p_out &lt; state-&gt;p_stop) {                 \
+<span class="lineNum">      57 </span>            :             *state-&gt;p_out = FIX_WORD(state-&gt;out_word, state-&gt;is_little_endian); \
+<span class="lineNum">      58 </span>            :             state-&gt;p_out++; \
+<span class="lineNum">      59 </span>            :         }                                            \
+<span class="lineNum">      60 </span>            :         state-&gt;out_word = 0; \
+<span class="lineNum">      61 </span>            :     } \
+<span class="lineNum">      62 </span>            : }
+<span class="lineNum">      63 </span>            : 
+<span class="lineNum">      64 </span>            : // Macros for performing context-determination-related table lookups
+<span class="lineNum">      65 </span>            : #define G_TO_CTXT_8BIT(g)  (loco_g_table_8bit[(g) &amp; 511])
+<span class="lineNum">      66 </span>            : #define G_TO_CTXT_12BIT(g)  (loco_g_table_12bit[((g)&gt;&gt;3) &amp; 1023])
+<span class="lineNum">      67 </span>            : #define GFOUR_TO_CTXT_8BIT(g)  (loco_gfour_table_8bit[(g) &amp; 511])
+<span class="lineNum">      68 </span>            : #define GFOUR_TO_CTXT_12BIT(g)  (loco_gfour_table_12bit[((g)&gt;&gt;3) &amp; 1023])
+<span class="lineNum">      69 </span>            : 
+<span class="lineNum">      70 </span>            : /* lookup tables */
+<span class="lineNum">      71 </span>            : 
+<span class="lineNum">      72 </span>            : LOCO_PRIVATE const U8 loco_g_table_8bit[512] =
+<span class="lineNum">      73 </span>            :      {   0,   0,  32,  32,  32,  64,  64,  64,  64,  64,  64,  64,
+<span class="lineNum">      74 </span>            :         64,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">      75 </span>            :         96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">      76 </span>            :         96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">      77 </span>            :         96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">      78 </span>            :         96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">      79 </span>            :         96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">      80 </span>            :         96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">      81 </span>            :         96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">      82 </span>            :         96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">      83 </span>            :         96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">      84 </span>            :         96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">      85 </span>            :         96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">      86 </span>            :         96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">      87 </span>            :         96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">      88 </span>            :         96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">      89 </span>            :         96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">      90 </span>            :         96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">      91 </span>            :         96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">      92 </span>            :         96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">      93 </span>            :         96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">      94 </span>            :         96,  96,  96,  96, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">      95 </span>            :        224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">      96 </span>            :        224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">      97 </span>            :        224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">      98 </span>            :        224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">      99 </span>            :        224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     100 </span>            :        224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     101 </span>            :        224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     102 </span>            :        224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     103 </span>            :        224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     104 </span>            :        224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     105 </span>            :        224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     106 </span>            :        224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     107 </span>            :        224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     108 </span>            :        224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     109 </span>            :        224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     110 </span>            :        224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     111 </span>            :        224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     112 </span>            :        224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     113 </span>            :        224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     114 </span>            :        224, 224, 224, 224, 224, 224, 224, 224, 192, 192, 192, 192,
+<span class="lineNum">     115 </span>            :        192, 192, 192, 192, 160, 160, 160,   0};
+<span class="lineNum">     116 </span>            : 
+<span class="lineNum">     117 </span>            : 
+<span class="lineNum">     118 </span>            : LOCO_PRIVATE const U8 loco_gfour_table_8bit[512] =
+<span class="lineNum">     119 </span>            :     {0,0,0,0,0,0,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     120 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     121 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     122 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     123 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     124 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     125 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     126 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     127 </span>            : 
+<span class="lineNum">     128 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     129 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     130 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     131 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     132 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     133 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     134 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     135 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,0,0,0,0,0};
+<span class="lineNum">     136 </span>            : 
+<span class="lineNum">     137 </span>            : 
+<span class="lineNum">     138 </span>            : LOCO_PRIVATE const U8 loco_g_table_12bit[1024] =
+<span class="lineNum">     139 </span>            :        {  0,   0,  32,  32,  32,  32,  64,  64,  64,  64,  64,  64,
+<span class="lineNum">     140 </span>            :          64,  64,  64,  64,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     141 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     142 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     143 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     144 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     145 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     146 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     147 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     148 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     149 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     150 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     151 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     152 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     153 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     154 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     155 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     156 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     157 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     158 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     159 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     160 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     161 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     162 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     163 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     164 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     165 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     166 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     167 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     168 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     169 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     170 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     171 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     172 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     173 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     174 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     175 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     176 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     177 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     178 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     179 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     180 </span>            :          96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,  96,
+<span class="lineNum">     181 </span>            :          96,  96,  96,  96,  96,  96,  96,  96, 224, 224, 224, 224,
+<span class="lineNum">     182 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     183 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     184 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     185 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     186 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     187 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     188 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     189 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     190 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     191 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     192 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     193 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     194 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     195 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     196 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     197 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     198 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     199 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     200 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     201 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     202 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     203 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     204 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     205 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     206 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     207 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     208 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     209 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     210 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     211 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     212 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     213 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     214 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     215 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     216 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     217 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     218 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     219 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     220 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     221 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     222 </span>            :         224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224, 224,
+<span class="lineNum">     223 </span>            :         192, 192, 192, 192, 192, 192, 192, 192, 192, 192, 160, 160,
+<span class="lineNum">     224 </span>            :         160, 160,   0,   0};
+<span class="lineNum">     225 </span>            : 
+<span class="lineNum">     226 </span>            : 
+<span class="lineNum">     227 </span>            : LOCO_PRIVATE const U8 loco_gfour_table_12bit[1024] =
+<span class="lineNum">     228 </span>            :     {0,0,0,0,0,0,0,0, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     229 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     230 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     231 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     232 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     233 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     234 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     235 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     236 </span>            : 
+<span class="lineNum">     237 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     238 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     239 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     240 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     241 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     242 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     243 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     244 </span>            :      1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,
+<span class="lineNum">     245 </span>            : 
+<span class="lineNum">     246 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     247 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     248 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     249 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     250 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     251 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     252 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     253 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     254 </span>            : 
+<span class="lineNum">     255 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     256 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     257 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     258 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     259 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     260 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     261 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3,
+<span class="lineNum">     262 </span>            :      3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 3,3,3,3,3,3,3,3, 0,0,0,0,0,0,0,0};
+<span class="lineNum">     263 </span>            : 
+<span class="lineNum">     264 </span>            : 
+<span class="lineNum">     265 </span>            : LOCO_PRIVATE const I16 loco_context_info_table[2048] =
+<span class="lineNum">     266 </span>            :     {   0,    2,    1,    3,    8,   10,   12,   14,   16,   18,
+<span class="lineNum">     267 </span>            :        20,   22,   24,   26,   28,   30,    1,    7,    1,    3,
+<span class="lineNum">     268 </span>            :         9,   15,    9,   11,   17,   23,   17,   19,   25,   31,
+<span class="lineNum">     269 </span>            :        25,   27,   64,   66,   68,   70,   72,   74,   76,   78,
+<span class="lineNum">     270 </span>            :        80,   82,   84,   86,   88,   90,   92,   94,   96,   98,
+<span class="lineNum">     271 </span>            :       100,  102,  104,  106,  108,  110,  112,  114,  116,  118,
+<span class="lineNum">     272 </span>            :       120,  122,  124,  126,  128,  130,  132,  134,  136,  138,
+<span class="lineNum">     273 </span>            :       140,  142,  144,  146,  148,  150,  152,  154,  156,  158,
+<span class="lineNum">     274 </span>            :       160,  162,  164,  166,  168,  170,  172,  174,  176,  178,
+<span class="lineNum">     275 </span>            :       180,  182,  184,  186,  188,  190,  192,  194,  196,  198,
+<span class="lineNum">     276 </span>            :       200,  202,  204,  206,  208,  210,  212,  214,  216,  218,
+<span class="lineNum">     277 </span>            :       220,  222,  224,  226,  228,  230,  232,  234,  236,  238,
+<span class="lineNum">     278 </span>            :       240,  242,  244,  246,  248,  250,  252,  254,    1,    7,
+<span class="lineNum">     279 </span>            :         1,    3,   41,   47,   41,   43,   49,   55,   49,   51,
+<span class="lineNum">     280 </span>            :        57,   63,   57,   59,    1,    7,    1,    3,    9,   15,
+<span class="lineNum">     281 </span>            :         9,   11,   17,   23,   17,   19,   25,   31,   25,   27,
+<span class="lineNum">     282 </span>            :        65,   71,   65,   67,  105,  111,  105,  107,  113,  119,
+<span class="lineNum">     283 </span>            :       113,  115,  121,  127,  121,  123,   65,   71,   65,   67,
+<span class="lineNum">     284 </span>            :        73,   79,   73,   75,   81,   87,   81,   83,   89,   95,
+<span class="lineNum">     285 </span>            :        89,   91,  129,  135,  129,  131,  169,  175,  169,  171,
+<span class="lineNum">     286 </span>            :       177,  183,  177,  179,  185,  191,  185,  187,  129,  135,
+<span class="lineNum">     287 </span>            :       129,  131,  137,  143,  137,  139,  145,  151,  145,  147,
+<span class="lineNum">     288 </span>            :       153,  159,  153,  155,  193,  199,  193,  195,  233,  239,
+<span class="lineNum">     289 </span>            :       233,  235,  241,  247,  241,  243,  249,  255,  249,  251,
+<span class="lineNum">     290 </span>            :       193,  199,  193,  195,  201,  207,  201,  203,  209,  215,
+<span class="lineNum">     291 </span>            :       209,  211,  217,  223,  217,  219,  512,  514,  516,  518,
+<span class="lineNum">     292 </span>            :       520,  522,  524,  526,  528,  530,  532,  534,  536,  538,
+<span class="lineNum">     293 </span>            :       540,  542,  544,  546,  548,  550,  552,  554,  556,  558,
+<span class="lineNum">     294 </span>            :       560,  562,  564,  566,  568,  570,  572,  574,  576,  578,
+<span class="lineNum">     295 </span>            :       580,  582,  584,  586,  588,  590,  592,  594,  596,  598,
+<span class="lineNum">     296 </span>            :       600,  602,  604,  606,  608,  610,  612,  614,  616,  618,
+<span class="lineNum">     297 </span>            :       620,  622,  624,  626,  628,  630,  632,  634,  636,  638,
+<span class="lineNum">     298 </span>            :       640,  642,  644,  646,  648,  650,  652,  654,  656,  658,
+<span class="lineNum">     299 </span>            :       660,  662,  664,  666,  668,  670,  672,  674,  676,  678,
+<span class="lineNum">     300 </span>            :       680,  682,  684,  686,  688,  690,  692,  694,  696,  698,
+<span class="lineNum">     301 </span>            :       700,  702,  704,  706,  708,  710,  712,  714,  716,  718,
+<span class="lineNum">     302 </span>            :       720,  722,  724,  726,  728,  730,  732,  734,  736,  738,
+<span class="lineNum">     303 </span>            :       740,  742,  744,  746,  748,  750,  752,  754,  756,  758,
+<span class="lineNum">     304 </span>            :       760,  762,  764,  766,  768,  770,  772,  774,  776,  778,
+<span class="lineNum">     305 </span>            :       780,  782,  784,  786,  788,  790,  792,  794,  796,  798,
+<span class="lineNum">     306 </span>            :       800,  802,  804,  806,  808,  810,  812,  814,  816,  818,
+<span class="lineNum">     307 </span>            :       820,  822,  824,  826,  828,  830,  832,  834,  836,  838,
+<span class="lineNum">     308 </span>            :       840,  842,  844,  846,  848,  850,  852,  854,  856,  858,
+<span class="lineNum">     309 </span>            :       860,  862,  864,  866,  868,  870,  872,  874,  876,  878,
+<span class="lineNum">     310 </span>            :       880,  882,  884,  886,  888,  890,  892,  894,  896,  898,
+<span class="lineNum">     311 </span>            :       900,  902,  904,  906,  908,  910,  912,  914,  916,  918,
+<span class="lineNum">     312 </span>            :       920,  922,  924,  926,  928,  930,  932,  934,  936,  938,
+<span class="lineNum">     313 </span>            :       940,  942,  944,  946,  948,  950,  952,  954,  956,  958,
+<span class="lineNum">     314 </span>            :       960,  962,  964,  966,  968,  970,  972,  974,  976,  978,
+<span class="lineNum">     315 </span>            :       980,  982,  984,  986,  988,  990,  992,  994,  996,  998,
+<span class="lineNum">     316 </span>            :      1000, 1002, 1004, 1006, 1008, 1010, 1012, 1014, 1016, 1018,
+<span class="lineNum">     317 </span>            :      1020, 1022, 1024, 1026, 1028, 1030, 1032, 1034, 1036, 1038,
+<span class="lineNum">     318 </span>            :      1040, 1042, 1044, 1046, 1048, 1050, 1052, 1054, 1056, 1058,
+<span class="lineNum">     319 </span>            :      1060, 1062, 1064, 1066, 1068, 1070, 1072, 1074, 1076, 1078,
+<span class="lineNum">     320 </span>            :      1080, 1082, 1084, 1086, 1088, 1090, 1092, 1094, 1096, 1098,
+<span class="lineNum">     321 </span>            :      1100, 1102, 1104, 1106, 1108, 1110, 1112, 1114, 1116, 1118,
+<span class="lineNum">     322 </span>            :      1120, 1122, 1124, 1126, 1128, 1130, 1132, 1134, 1136, 1138,
+<span class="lineNum">     323 </span>            :      1140, 1142, 1144, 1146, 1148, 1150, 1152, 1154, 1156, 1158,
+<span class="lineNum">     324 </span>            :      1160, 1162, 1164, 1166, 1168, 1170, 1172, 1174, 1176, 1178,
+<span class="lineNum">     325 </span>            :      1180, 1182, 1184, 1186, 1188, 1190, 1192, 1194, 1196, 1198,
+<span class="lineNum">     326 </span>            :      1200, 1202, 1204, 1206, 1208, 1210, 1212, 1214, 1216, 1218,
+<span class="lineNum">     327 </span>            :      1220, 1222, 1224, 1226, 1228, 1230, 1232, 1234, 1236, 1238,
+<span class="lineNum">     328 </span>            :      1240, 1242, 1244, 1246, 1248, 1250, 1252, 1254, 1256, 1258,
+<span class="lineNum">     329 </span>            :      1260, 1262, 1264, 1266, 1268, 1270, 1272, 1274, 1276, 1278,
+<span class="lineNum">     330 </span>            :      1280, 1282, 1284, 1286, 1288, 1290, 1292, 1294, 1296, 1298,
+<span class="lineNum">     331 </span>            :      1300, 1302, 1304, 1306, 1308, 1310, 1312, 1314, 1316, 1318,
+<span class="lineNum">     332 </span>            :      1320, 1322, 1324, 1326, 1328, 1330, 1332, 1334, 1336, 1338,
+<span class="lineNum">     333 </span>            :      1340, 1342, 1344, 1346, 1348, 1350, 1352, 1354, 1356, 1358,
+<span class="lineNum">     334 </span>            :      1360, 1362, 1364, 1366, 1368, 1370, 1372, 1374, 1376, 1378,
+<span class="lineNum">     335 </span>            :      1380, 1382, 1384, 1386, 1388, 1390, 1392, 1394, 1396, 1398,
+<span class="lineNum">     336 </span>            :      1400, 1402, 1404, 1406, 1408, 1410, 1412, 1414, 1416, 1418,
+<span class="lineNum">     337 </span>            :      1420, 1422, 1424, 1426, 1428, 1430, 1432, 1434, 1436, 1438,
+<span class="lineNum">     338 </span>            :      1440, 1442, 1444, 1446, 1448, 1450, 1452, 1454, 1456, 1458,
+<span class="lineNum">     339 </span>            :      1460, 1462, 1464, 1466, 1468, 1470, 1472, 1474, 1476, 1478,
+<span class="lineNum">     340 </span>            :      1480, 1482, 1484, 1486, 1488, 1490, 1492, 1494, 1496, 1498,
+<span class="lineNum">     341 </span>            :      1500, 1502, 1504, 1506, 1508, 1510, 1512, 1514, 1516, 1518,
+<span class="lineNum">     342 </span>            :      1520, 1522, 1524, 1526, 1528, 1530, 1532, 1534, 1536, 1538,
+<span class="lineNum">     343 </span>            :      1540, 1542, 1544, 1546, 1548, 1550, 1552, 1554, 1556, 1558,
+<span class="lineNum">     344 </span>            :      1560, 1562, 1564, 1566, 1568, 1570, 1572, 1574, 1576, 1578,
+<span class="lineNum">     345 </span>            :      1580, 1582, 1584, 1586, 1588, 1590, 1592, 1594, 1596, 1598,
+<span class="lineNum">     346 </span>            :      1600, 1602, 1604, 1606, 1608, 1610, 1612, 1614, 1616, 1618,
+<span class="lineNum">     347 </span>            :      1620, 1622, 1624, 1626, 1628, 1630, 1632, 1634, 1636, 1638,
+<span class="lineNum">     348 </span>            :      1640, 1642, 1644, 1646, 1648, 1650, 1652, 1654, 1656, 1658,
+<span class="lineNum">     349 </span>            :      1660, 1662, 1664, 1666, 1668, 1670, 1672, 1674, 1676, 1678,
+<span class="lineNum">     350 </span>            :      1680, 1682, 1684, 1686, 1688, 1690, 1692, 1694, 1696, 1698,
+<span class="lineNum">     351 </span>            :      1700, 1702, 1704, 1706, 1708, 1710, 1712, 1714, 1716, 1718,
+<span class="lineNum">     352 </span>            :      1720, 1722, 1724, 1726, 1728, 1730, 1732, 1734, 1736, 1738,
+<span class="lineNum">     353 </span>            :      1740, 1742, 1744, 1746, 1748, 1750, 1752, 1754, 1756, 1758,
+<span class="lineNum">     354 </span>            :      1760, 1762, 1764, 1766, 1768, 1770, 1772, 1774, 1776, 1778,
+<span class="lineNum">     355 </span>            :      1780, 1782, 1784, 1786, 1788, 1790, 1792, 1794, 1796, 1798,
+<span class="lineNum">     356 </span>            :      1800, 1802, 1804, 1806, 1808, 1810, 1812, 1814, 1816, 1818,
+<span class="lineNum">     357 </span>            :      1820, 1822, 1824, 1826, 1828, 1830, 1832, 1834, 1836, 1838,
+<span class="lineNum">     358 </span>            :      1840, 1842, 1844, 1846, 1848, 1850, 1852, 1854, 1856, 1858,
+<span class="lineNum">     359 </span>            :      1860, 1862, 1864, 1866, 1868, 1870, 1872, 1874, 1876, 1878,
+<span class="lineNum">     360 </span>            :      1880, 1882, 1884, 1886, 1888, 1890, 1892, 1894, 1896, 1898,
+<span class="lineNum">     361 </span>            :      1900, 1902, 1904, 1906, 1908, 1910, 1912, 1914, 1916, 1918,
+<span class="lineNum">     362 </span>            :      1920, 1922, 1924, 1926, 1928, 1930, 1932, 1934, 1936, 1938,
+<span class="lineNum">     363 </span>            :      1940, 1942, 1944, 1946, 1948, 1950, 1952, 1954, 1956, 1958,
+<span class="lineNum">     364 </span>            :      1960, 1962, 1964, 1966, 1968, 1970, 1972, 1974, 1976, 1978,
+<span class="lineNum">     365 </span>            :      1980, 1982, 1984, 1986, 1988, 1990, 1992, 1994, 1996, 1998,
+<span class="lineNum">     366 </span>            :      2000, 2002, 2004, 2006, 2008, 2010, 2012, 2014, 2016, 2018,
+<span class="lineNum">     367 </span>            :      2020, 2022, 2024, 2026, 2028, 2030, 2032, 2034, 2036, 2038,
+<span class="lineNum">     368 </span>            :      2040, 2042, 2044, 2046,    1,    7,    1,    3,   41,   47,
+<span class="lineNum">     369 </span>            :        41,   43,   49,   55,   49,   51,   57,   63,   57,   59,
+<span class="lineNum">     370 </span>            :         1,    7,    1,    3,    9,   15,    9,   11,   17,   23,
+<span class="lineNum">     371 </span>            :        17,   19,   25,   31,   25,   27,  321,  327,  321,  323,
+<span class="lineNum">     372 </span>            :       361,  367,  361,  363,  369,  375,  369,  371,  377,  383,
+<span class="lineNum">     373 </span>            :       377,  379,  321,  327,  321,  323,  329,  335,  329,  331,
+<span class="lineNum">     374 </span>            :       337,  343,  337,  339,  345,  351,  345,  347,  385,  391,
+<span class="lineNum">     375 </span>            :       385,  387,  425,  431,  425,  427,  433,  439,  433,  435,
+<span class="lineNum">     376 </span>            :       441,  447,  441,  443,  385,  391,  385,  387,  393,  399,
+<span class="lineNum">     377 </span>            :       393,  395,  401,  407,  401,  403,  409,  415,  409,  411,
+<span class="lineNum">     378 </span>            :       449,  455,  449,  451,  489,  495,  489,  491,  497,  503,
+<span class="lineNum">     379 </span>            :       497,  499,  505,  511,  505,  507,  449,  455,  449,  451,
+<span class="lineNum">     380 </span>            :       457,  463,  457,  459,  465,  471,  465,  467,  473,  479,
+<span class="lineNum">     381 </span>            :       473,  475,    1,    7,    1,    3,   41,   47,   41,   43,
+<span class="lineNum">     382 </span>            :        49,   55,   49,   51,   57,   63,   57,   59,    1,    7,
+<span class="lineNum">     383 </span>            :         1,    3,    9,   15,    9,   11,   17,   23,   17,   19,
+<span class="lineNum">     384 </span>            :        25,   31,   25,   27,   65,   71,   65,   67,  105,  111,
+<span class="lineNum">     385 </span>            :       105,  107,  113,  119,  113,  115,  121,  127,  121,  123,
+<span class="lineNum">     386 </span>            :        65,   71,   65,   67,   73,   79,   73,   75,   81,   87,
+<span class="lineNum">     387 </span>            :        81,   83,   89,   95,   89,   91,  129,  135,  129,  131,
+<span class="lineNum">     388 </span>            :       169,  175,  169,  171,  177,  183,  177,  179,  185,  191,
+<span class="lineNum">     389 </span>            :       185,  187,  129,  135,  129,  131,  137,  143,  137,  139,
+<span class="lineNum">     390 </span>            :       145,  151,  145,  147,  153,  159,  153,  155,  193,  199,
+<span class="lineNum">     391 </span>            :       193,  195,  233,  239,  233,  235,  241,  247,  241,  243,
+<span class="lineNum">     392 </span>            :       249,  255,  249,  251,  193,  199,  193,  195,  201,  207,
+<span class="lineNum">     393 </span>            :       201,  203,  209,  215,  209,  211,  217,  223,  217,  219,
+<span class="lineNum">     394 </span>            :       513,  519,  513,  515,  553,  559,  553,  555,  561,  567,
+<span class="lineNum">     395 </span>            :       561,  563,  569,  575,  569,  571,  513,  519,  513,  515,
+<span class="lineNum">     396 </span>            :       521,  527,  521,  523,  529,  535,  529,  531,  537,  543,
+<span class="lineNum">     397 </span>            :       537,  539,  833,  839,  833,  835,  873,  879,  873,  875,
+<span class="lineNum">     398 </span>            :       881,  887,  881,  883,  889,  895,  889,  891,  833,  839,
+<span class="lineNum">     399 </span>            :       833,  835,  841,  847,  841,  843,  849,  855,  849,  851,
+<span class="lineNum">     400 </span>            :       857,  863,  857,  859,  897,  903,  897,  899,  937,  943,
+<span class="lineNum">     401 </span>            :       937,  939,  945,  951,  945,  947,  953,  959,  953,  955,
+<span class="lineNum">     402 </span>            :       897,  903,  897,  899,  905,  911,  905,  907,  913,  919,
+<span class="lineNum">     403 </span>            :       913,  915,  921,  927,  921,  923,  961,  967,  961,  963,
+<span class="lineNum">     404 </span>            :      1001, 1007, 1001, 1003, 1009, 1015, 1009, 1011, 1017, 1023,
+<span class="lineNum">     405 </span>            :      1017, 1019,  961,  967,  961,  963,  969,  975,  969,  971,
+<span class="lineNum">     406 </span>            :       977,  983,  977,  979,  985,  991,  985,  987,  513,  519,
+<span class="lineNum">     407 </span>            :       513,  515,  553,  559,  553,  555,  561,  567,  561,  563,
+<span class="lineNum">     408 </span>            :       569,  575,  569,  571,  513,  519,  513,  515,  521,  527,
+<span class="lineNum">     409 </span>            :       521,  523,  529,  535,  529,  531,  537,  543,  537,  539,
+<span class="lineNum">     410 </span>            :       577,  583,  577,  579,  617,  623,  617,  619,  625,  631,
+<span class="lineNum">     411 </span>            :       625,  627,  633,  639,  633,  635,  577,  583,  577,  579,
+<span class="lineNum">     412 </span>            :       585,  591,  585,  587,  593,  599,  593,  595,  601,  607,
+<span class="lineNum">     413 </span>            :       601,  603,  641,  647,  641,  643,  681,  687,  681,  683,
+<span class="lineNum">     414 </span>            :       689,  695,  689,  691,  697,  703,  697,  699,  641,  647,
+<span class="lineNum">     415 </span>            :       641,  643,  649,  655,  649,  651,  657,  663,  657,  659,
+<span class="lineNum">     416 </span>            :       665,  671,  665,  667,  705,  711,  705,  707,  745,  751,
+<span class="lineNum">     417 </span>            :       745,  747,  753,  759,  753,  755,  761,  767,  761,  763,
+<span class="lineNum">     418 </span>            :       705,  711,  705,  707,  713,  719,  713,  715,  721,  727,
+<span class="lineNum">     419 </span>            :       721,  723,  729,  735,  729,  731, 1025, 1031, 1025, 1027,
+<span class="lineNum">     420 </span>            :      1065, 1071, 1065, 1067, 1073, 1079, 1073, 1075, 1081, 1087,
+<span class="lineNum">     421 </span>            :      1081, 1083, 1025, 1031, 1025, 1027, 1033, 1039, 1033, 1035,
+<span class="lineNum">     422 </span>            :      1041, 1047, 1041, 1043, 1049, 1055, 1049, 1051, 1345, 1351,
+<span class="lineNum">     423 </span>            :      1345, 1347, 1385, 1391, 1385, 1387, 1393, 1399, 1393, 1395,
+<span class="lineNum">     424 </span>            :      1401, 1407, 1401, 1403, 1345, 1351, 1345, 1347, 1353, 1359,
+<span class="lineNum">     425 </span>            :      1353, 1355, 1361, 1367, 1361, 1363, 1369, 1375, 1369, 1371,
+<span class="lineNum">     426 </span>            :      1409, 1415, 1409, 1411, 1449, 1455, 1449, 1451, 1457, 1463,
+<span class="lineNum">     427 </span>            :      1457, 1459, 1465, 1471, 1465, 1467, 1409, 1415, 1409, 1411,
+<span class="lineNum">     428 </span>            :      1417, 1423, 1417, 1419, 1425, 1431, 1425, 1427, 1433, 1439,
+<span class="lineNum">     429 </span>            :      1433, 1435, 1473, 1479, 1473, 1475, 1513, 1519, 1513, 1515,
+<span class="lineNum">     430 </span>            :      1521, 1527, 1521, 1523, 1529, 1535, 1529, 1531, 1473, 1479,
+<span class="lineNum">     431 </span>            :      1473, 1475, 1481, 1487, 1481, 1483, 1489, 1495, 1489, 1491,
+<span class="lineNum">     432 </span>            :      1497, 1503, 1497, 1499, 1025, 1031, 1025, 1027, 1065, 1071,
+<span class="lineNum">     433 </span>            :      1065, 1067, 1073, 1079, 1073, 1075, 1081, 1087, 1081, 1083,
+<span class="lineNum">     434 </span>            :      1025, 1031, 1025, 1027, 1033, 1039, 1033, 1035, 1041, 1047,
+<span class="lineNum">     435 </span>            :      1041, 1043, 1049, 1055, 1049, 1051, 1089, 1095, 1089, 1091,
+<span class="lineNum">     436 </span>            :      1129, 1135, 1129, 1131, 1137, 1143, 1137, 1139, 1145, 1151,
+<span class="lineNum">     437 </span>            :      1145, 1147, 1089, 1095, 1089, 1091, 1097, 1103, 1097, 1099,
+<span class="lineNum">     438 </span>            :      1105, 1111, 1105, 1107, 1113, 1119, 1113, 1115, 1153, 1159,
+<span class="lineNum">     439 </span>            :      1153, 1155, 1193, 1199, 1193, 1195, 1201, 1207, 1201, 1203,
+<span class="lineNum">     440 </span>            :      1209, 1215, 1209, 1211, 1153, 1159, 1153, 1155, 1161, 1167,
+<span class="lineNum">     441 </span>            :      1161, 1163, 1169, 1175, 1169, 1171, 1177, 1183, 1177, 1179,
+<span class="lineNum">     442 </span>            :      1217, 1223, 1217, 1219, 1257, 1263, 1257, 1259, 1265, 1271,
+<span class="lineNum">     443 </span>            :      1265, 1267, 1273, 1279, 1273, 1275, 1217, 1223, 1217, 1219,
+<span class="lineNum">     444 </span>            :      1225, 1231, 1225, 1227, 1233, 1239, 1233, 1235, 1241, 1247,
+<span class="lineNum">     445 </span>            :      1241, 1243, 1537, 1543, 1537, 1539, 1577, 1583, 1577, 1579,
+<span class="lineNum">     446 </span>            :      1585, 1591, 1585, 1587, 1593, 1599, 1593, 1595, 1537, 1543,
+<span class="lineNum">     447 </span>            :      1537, 1539, 1545, 1551, 1545, 1547, 1553, 1559, 1553, 1555,
+<span class="lineNum">     448 </span>            :      1561, 1567, 1561, 1563, 1857, 1863, 1857, 1859, 1897, 1903,
+<span class="lineNum">     449 </span>            :      1897, 1899, 1905, 1911, 1905, 1907, 1913, 1919, 1913, 1915,
+<span class="lineNum">     450 </span>            :      1857, 1863, 1857, 1859, 1865, 1871, 1865, 1867, 1873, 1879,
+<span class="lineNum">     451 </span>            :      1873, 1875, 1881, 1887, 1881, 1883, 1921, 1927, 1921, 1923,
+<span class="lineNum">     452 </span>            :      1961, 1967, 1961, 1963, 1969, 1975, 1969, 1971, 1977, 1983,
+<span class="lineNum">     453 </span>            :      1977, 1979, 1921, 1927, 1921, 1923, 1929, 1935, 1929, 1931,
+<span class="lineNum">     454 </span>            :      1937, 1943, 1937, 1939, 1945, 1951, 1945, 1947, 1985, 1991,
+<span class="lineNum">     455 </span>            :      1985, 1987, 2025, 2031, 2025, 2027, 2033, 2039, 2033, 2035,
+<span class="lineNum">     456 </span>            :      2041, 2047, 2041, 2043, 1985, 1991, 1985, 1987, 1993, 1999,
+<span class="lineNum">     457 </span>            :      1993, 1995, 2001, 2007, 2001, 2003, 2009, 2015, 2009, 2011,
+<span class="lineNum">     458 </span>            :      1537, 1543, 1537, 1539, 1577, 1583, 1577, 1579, 1585, 1591,
+<span class="lineNum">     459 </span>            :      1585, 1587, 1593, 1599, 1593, 1595, 1537, 1543, 1537, 1539,
+<span class="lineNum">     460 </span>            :      1545, 1551, 1545, 1547, 1553, 1559, 1553, 1555, 1561, 1567,
+<span class="lineNum">     461 </span>            :      1561, 1563, 1601, 1607, 1601, 1603, 1641, 1647, 1641, 1643,
+<span class="lineNum">     462 </span>            :      1649, 1655, 1649, 1651, 1657, 1663, 1657, 1659, 1601, 1607,
+<span class="lineNum">     463 </span>            :      1601, 1603, 1609, 1615, 1609, 1611, 1617, 1623, 1617, 1619,
+<span class="lineNum">     464 </span>            :      1625, 1631, 1625, 1627, 1665, 1671, 1665, 1667, 1705, 1711,
+<span class="lineNum">     465 </span>            :      1705, 1707, 1713, 1719, 1713, 1715, 1721, 1727, 1721, 1723,
+<span class="lineNum">     466 </span>            :      1665, 1671, 1665, 1667, 1673, 1679, 1673, 1675, 1681, 1687,
+<span class="lineNum">     467 </span>            :      1681, 1683, 1689, 1695, 1689, 1691, 1729, 1735, 1729, 1731,
+<span class="lineNum">     468 </span>            :      1769, 1775, 1769, 1771, 1777, 1783, 1777, 1779, 1785, 1791,
+<span class="lineNum">     469 </span>            :      1785, 1787, 1729, 1735, 1729, 1731, 1737, 1743, 1737, 1739,
+<span class="lineNum">     470 </span>            :      1745, 1751, 1745, 1747, 1753, 1759, 1753, 1755};
+<span class="lineNum">     471 </span>            : 
+<span class="lineNum">     472 </span>            : // function prototypes
+<span class="lineNum">     473 </span>            : LOCO_PRIVATE void loco_compress_segment_8bit(LocoCompressState * state,
+<span class="lineNum">     474 </span>            :         I32 seg, I32 xstart, I32 xend, I32 ystart, I32 yend);
+<span class="lineNum">     475 </span>            : LOCO_PRIVATE void loco_compress_segment_12bit(LocoCompressState * state,
+<span class="lineNum">     476 </span>            :         I32 seg, I32 xstart, I32 xend, I32 ystart, I32 yend);
+<span class="lineNum">     477 </span>            : LOCO_PRIVATE void loco_write_integer(LocoCompressState * state, I32 val, I32 bits);
+<span class="lineNum">     478 </span>            : 
+<span class="lineNum">     479 </span>            : // functions
+<a name="480"><span class="lineNum">     480 </span>            : </a>
+<span class="lineNum">     481 </span>            : // clear result, except for buffer details
+<span class="lineNum">     482 </span><span class="lineCov">         19 : LOCO_PRIVATE void loco_clear_result(LocoCompressedImage *result)</span>
+<span class="lineNum">     483 </span>            : {
+<span class="lineNum">     484 </span><span class="lineCov">         19 :     LOCO_ASSERT(result != NULL);</span>
+<span class="lineNum">     485 </span>            :     // Clear result
+<span class="lineNum">     486 </span><span class="lineCov">         19 :     result-&gt;compressed_size_bytes = 0;</span>
+<span class="lineNum">     487 </span><span class="lineCov">         19 :     result-&gt;segments.n_segs = 0;</span>
+<span class="lineNum">     488 </span><span class="lineCov">        627 :     for (I32 seg = 0; seg&lt;LOCO_MAX_SEGS; seg++) {</span>
+<span class="lineNum">     489 </span><span class="lineCov">        608 :         result-&gt;segments.seg_ptr[seg] = NULL;</span>
+<span class="lineNum">     490 </span><span class="lineCov">        608 :         result-&gt;segments.n_bits[seg] = 0;</span>
+<span class="lineNum">     491 </span>            :     }
+<span class="lineNum">     492 </span><span class="lineCov">         19 :     result-&gt;segments.seg_ptr[LOCO_MAX_SEGS] = NULL;</span>
+<a name="493"><span class="lineNum">     493 </span><span class="lineCov">         19 : }</span></a>
+<span class="lineNum">     494 </span>            : 
+<span class="lineNum">     495 </span><span class="lineCov">         19 : I32 loco_compress(</span>
+<span class="lineNum">     496 </span>            :     LocoCompressState *state,
+<span class="lineNum">     497 </span>            :     const LocoImage   *image,
+<span class="lineNum">     498 </span>            :     LocoCompressedImage *result)
+<span class="lineNum">     499 </span>            : {
+<span class="lineNum">     500 </span><span class="lineCov">         19 :     LOCO_ASSERT(state != NULL);</span>
+<span class="lineNum">     501 </span><span class="lineCov">         19 :     LOCO_ASSERT(image != NULL);</span>
+<span class="lineNum">     502 </span><span class="lineCov">         19 :     LOCO_ASSERT(image-&gt;data != NULL);</span>
+<span class="lineNum">     503 </span><span class="lineCov">         19 :     LOCO_ASSERT(result != NULL);</span>
+<span class="lineNum">     504 </span><span class="lineCov">         19 :     LOCO_ASSERT(result-&gt;data != NULL);</span>
+<span class="lineNum">     505 </span><span class="lineCov">         19 :     loco_clear_result(result);</span>
+<span class="lineNum">     506 </span>            : 
+<span class="lineNum">     507 </span>            :     /* Copy some parameters to equivalent globals */
+<span class="lineNum">     508 </span><span class="lineCov">         19 :     state-&gt;image_width = image-&gt;width;</span>
+<span class="lineNum">     509 </span><span class="lineCov">         19 :     state-&gt;image_height = image-&gt;height;</span>
+<span class="lineNum">     510 </span><span class="lineCov">         19 :     state-&gt;n_segs = image-&gt;n_segs;</span>
+<span class="lineNum">     511 </span>            : 
+<span class="lineNum">     512 </span><span class="lineCov">         19 :     U32 endian = 1;</span>
+<span class="lineNum">     513 </span><span class="lineCov">         19 :     state-&gt;is_little_endian = *((U8*)(&amp;endian));</span>
+<span class="lineNum">     514 </span>            : 
+<span class="lineNum">     515 </span><span class="lineCov">         19 :     I32 status = loco_check_image(image); // Check validity of image data</span>
+<span class="lineNum">     516 </span><span class="lineCov">         19 :     if (status &amp; LOCO_ABORT_COMPRESSION_FLAG) {</span>
+<span class="lineNum">     517 </span><span class="lineCov">          2 :         LOCO_WARN7(LOCO_COMPRESS_ABORT,</span>
+<span class="lineNum">     518 </span>            :                 &quot;In loco_compress(), check_image() status 0x04%x &quot;
+<span class="lineNum">     519 </span>            :                 &quot;indicates compression cannot continue. &quot;
+<span class="lineNum">     520 </span>            :                 &quot;Image width: %d, space_width: %d, height:%d, n_segs: %d, &quot;
+<span class="lineNum">     521 </span>            :                 &quot;bitdepth: %d, size_data_bytes: %d.&quot;,
+<span class="lineNum">     522 </span>            :                 (U32)status, image-&gt;width, image-&gt;space_width, image-&gt;height,
+<span class="lineNum">     523 </span>            :                 image-&gt;n_segs, image-&gt;bit_depth, image-&gt;size_data_bytes);
+<span class="lineNum">     524 </span><span class="lineCov">          2 :         return status;</span>
+<span class="lineNum">     525 </span>            :     }
+<span class="lineNum">     526 </span>            : 
+<span class="lineNum">     527 </span>            :     /* Setup pointers to the rows of the image_old */
+<span class="lineNum">     528 </span><span class="lineCov">       7697 :     for(I32 y=0; y&lt;image-&gt;height; y++) {</span>
+<span class="lineNum">     529 </span><span class="lineCov">       7680 :         state-&gt;image_rows[y] = image-&gt;data + y*image-&gt;space_width;</span>
+<span class="lineNum">     530 </span>            :     }
+<span class="lineNum">     531 </span>            : 
+<span class="lineNum">     532 </span>            :     /* Compute error containment segment rectangles */
+<span class="lineNum">     533 </span><span class="lineCov">         17 :     loco_setup_segs(state-&gt;image_width, state-&gt;image_height, state-&gt;n_segs,</span>
+<span class="lineNum">     534 </span><span class="lineCov">         17 :             state-&gt;seg_bound);</span>
+<span class="lineNum">     535 </span>            : 
+<span class="lineNum">     536 </span>            :     /* Setup output bitstream pointers */
+<span class="lineNum">     537 </span><span class="lineCov">         17 :     state-&gt;p_out = result-&gt;data;</span>
+<span class="lineNum">     538 </span><span class="lineCov">         17 :     I32 result_buf_size_local = result-&gt;size_data_bytes;</span>
+<span class="lineNum">     539 </span><span class="lineCov">         17 :     if (result_buf_size_local &lt; 0) {</span>
+<span class="lineNum">     540 </span><span class="lineCov">          2 :         result_buf_size_local = 0;</span>
+<span class="lineNum">     541 </span>            :     }
+<span class="lineNum">     542 </span>            :     LOCO_COMPILE_ASSERT(sizeof(LocoBitstreamType) != 0, loco_bitstream_zero);
+<span class="lineNum">     543 </span><span class="lineCov">         17 :     state-&gt;p_stop = result-&gt;data + result_buf_size_local/sizeof(LocoBitstreamType);</span>
+<span class="lineNum">     544 </span><span class="lineCov">         17 :     result-&gt;segments.seg_ptr[0] = (U8*)result-&gt;data;</span>
+<span class="lineNum">     545 </span>            : 
+<span class="lineNum">     546 </span>            :     // Compress the segments
+<span class="lineNum">     547 </span><span class="lineCov">        502 :     for (I32 seg=0; seg&lt;state-&gt;n_segs; seg++) {</span>
+<span class="lineNum">     548 </span>            :         /* Reset bitstream output word */
+<span class="lineNum">     549 </span><span class="lineCov">        485 :         state-&gt;bit_count = 8*sizeof(LocoBitstreamType)-1;</span>
+<span class="lineNum">     550 </span><span class="lineCov">        485 :         state-&gt;out_word = 0;</span>
+<span class="lineNum">     551 </span>            : 
+<span class="lineNum">     552 </span>            :         /* Compress the segment */
+<span class="lineNum">     553 </span><span class="lineCov">        485 :         LOCO_ASSERT_1(image-&gt;bit_depth &gt; 0 &amp;&amp; image-&gt;bit_depth &lt;= BITDEPTH_12BIT,</span>
+<span class="lineNum">     554 </span>            :                 image-&gt;bit_depth);
+<span class="lineNum">     555 </span><span class="lineCov">        485 :         if (image-&gt;bit_depth &lt;= BITDEPTH_8BIT) {</span>
+<span class="lineNum">     556 </span><span class="lineCov">        217 :             loco_compress_segment_8bit(state, seg, state-&gt;seg_bound[seg].xstart,</span>
+<span class="lineNum">     557 </span>            :                     state-&gt;seg_bound[seg].xend, state-&gt;seg_bound[seg].ystart,
+<span class="lineNum">     558 </span>            :                     state-&gt;seg_bound[seg].yend);
+<span class="lineNum">     559 </span>            :         } else {
+<span class="lineNum">     560 </span><span class="lineCov">        268 :             loco_compress_segment_12bit(state, seg, state-&gt;seg_bound[seg].xstart,</span>
+<span class="lineNum">     561 </span>            :                     state-&gt;seg_bound[seg].xend, state-&gt;seg_bound[seg].ystart,
+<span class="lineNum">     562 </span>            :                     state-&gt;seg_bound[seg].yend);
+<span class="lineNum">     563 </span>            :         }
+<span class="lineNum">     564 </span>            : 
+<span class="lineNum">     565 </span>            :         /* Store last word (if necessary) and record position of end of segment */
+<span class="lineNum">     566 </span><span class="lineCov">        485 :         if (state-&gt;bit_count &lt; (I32)(8*sizeof(LocoBitstreamType)-1)</span>
+<span class="lineNum">     567 </span><span class="lineCov">        385 :                 &amp;&amp; state-&gt;p_out &lt; state-&gt;p_stop) {</span>
+<span class="lineNum">     568 </span><span class="lineCov">        280 :             *state-&gt;p_out++ = FIX_WORD(state-&gt;out_word, state-&gt;is_little_endian);</span>
+<span class="lineNum">     569 </span>            :         }
+<span class="lineNum">     570 </span><span class="lineCov">        485 :         result-&gt;segments.seg_ptr[seg+1] = (U8*)state-&gt;p_out;</span>
+<span class="lineNum">     571 </span><span class="lineCov">        485 :         result-&gt;segments.n_bits[seg] =</span>
+<span class="lineNum">     572 </span><span class="lineCov">        970 :                 8 * (I32) (result-&gt;segments.seg_ptr[seg + 1]</span>
+<span class="lineNum">     573 </span><span class="lineCov">        485 :                            - result-&gt;segments.seg_ptr[seg]);</span>
+<span class="lineNum">     574 </span>            :     }
+<span class="lineNum">     575 </span><span class="lineCov">         17 :     result-&gt;segments.n_segs = state-&gt;n_segs;</span>
+<span class="lineNum">     576 </span><span class="lineCov">         17 :     result-&gt;compressed_size_bytes = 8</span>
+<span class="lineNum">     577 </span><span class="lineCov">         17 :             * (result-&gt;segments.seg_ptr[result-&gt;segments.n_segs]</span>
+<span class="lineNum">     578 </span><span class="lineCov">         17 :                - result-&gt;segments.seg_ptr[0]);</span>
+<span class="lineNum">     579 </span>            : 
+<span class="lineNum">     580 </span>            :     /* Check if the output buffer filled up, and return */
+<span class="lineNum">     581 </span><span class="lineCov">         17 :     if (state-&gt;p_out == state-&gt;p_stop) {</span>
+<span class="lineNum">     582 </span><span class="lineCov">          5 :         status |= LOCO_BUFFER_FILLED_FLAG;</span>
+<span class="lineNum">     583 </span>            :     }
+<span class="lineNum">     584 </span><span class="lineCov">         17 :     return status;</span>
+<span class="lineNum">     585 </span>            : }
+<a name="586"><span class="lineNum">     586 </span>            : </a>
+<span class="lineNum">     587 </span>            : // Check if an image is valid for compression
+<span class="lineNum">     588 </span><span class="lineCov">         33 : I32 loco_check_image(const LocoImage *image)</span>
+<span class="lineNum">     589 </span>            : {
+<span class="lineNum">     590 </span><span class="lineCov">         33 :     I32 status = 0;</span>
+<span class="lineNum">     591 </span>            : 
+<span class="lineNum">     592 </span><span class="lineCov">         33 :     LOCO_ASSERT(image != NULL);</span>
+<span class="lineNum">     593 </span>            : 
+<span class="lineNum">     594 </span>            :     /* Check that image dimensions are not too large */
+<span class="lineNum">     595 </span><span class="lineCov">         33 :     if (image-&gt;width &gt; LOCO_MAX_IMAGE_WIDTH) {</span>
+<span class="lineNum">     596 </span><span class="lineCov">          1 :         status |= LOCO_BIG_WIDTH_FLAG | LOCO_ABORT_COMPRESSION_FLAG;</span>
+<span class="lineNum">     597 </span>            :     }
+<span class="lineNum">     598 </span><span class="lineCov">         33 :     if (image-&gt;height &gt; LOCO_MAX_IMAGE_HEIGHT) {</span>
+<span class="lineNum">     599 </span><span class="lineCov">          1 :         status |= LOCO_BIG_HEIGHT_FLAG | LOCO_ABORT_COMPRESSION_FLAG;</span>
+<span class="lineNum">     600 </span>            :     }
+<span class="lineNum">     601 </span>            : 
+<span class="lineNum">     602 </span>            :     /* Check that image_width is compatible with image_space_width */
+<span class="lineNum">     603 </span><span class="lineCov">         33 :     if (image-&gt;width &gt; image-&gt;space_width) {</span>
+<span class="lineNum">     604 </span><span class="lineCov">          1 :         status |= LOCO_BAD_SPACE_WIDTH_FLAG | LOCO_ABORT_COMPRESSION_FLAG;</span>
+<span class="lineNum">     605 </span>            :     }
+<span class="lineNum">     606 </span>            : 
+<span class="lineNum">     607 </span>            :     /* Check that image dimensions are not too small */
+<span class="lineNum">     608 </span><span class="lineCov">         33 :     if (image-&gt;width &lt; LOCO_MIN_IMAGE_WIDTH) {</span>
+<span class="lineNum">     609 </span><span class="lineCov">          1 :         status |= LOCO_SMALL_WIDTH_FLAG | LOCO_ABORT_COMPRESSION_FLAG;</span>
+<span class="lineNum">     610 </span>            :     }
+<span class="lineNum">     611 </span><span class="lineCov">         33 :     if (image-&gt;height &lt; LOCO_MIN_IMAGE_HEIGHT) {</span>
+<span class="lineNum">     612 </span><span class="lineCov">          1 :         status |= LOCO_SMALL_HEIGHT_FLAG | LOCO_ABORT_COMPRESSION_FLAG;</span>
+<span class="lineNum">     613 </span>            :     }
+<span class="lineNum">     614 </span>            : 
+<span class="lineNum">     615 </span>            :     /* Check that the average number of pixels per segment is not too small */
+<span class="lineNum">     616 </span><span class="lineCov">         33 :     if (image-&gt;width*image-&gt;height &lt; image-&gt;n_segs*LOCO_MIN_SEGMENT_PIXELS) {</span>
+<span class="lineNum">     617 </span><span class="lineCov">          3 :         status |= LOCO_SMALL_IMAGE_FLAG | LOCO_ABORT_COMPRESSION_FLAG;</span>
+<span class="lineNum">     618 </span>            :     }
+<span class="lineNum">     619 </span>            : 
+<span class="lineNum">     620 </span>            :     /* Check that the number of segments is in the proper range */
+<span class="lineNum">     621 </span><span class="lineCov">         33 :     if (image-&gt;n_segs &lt; 1 || image-&gt;n_segs &gt; LOCO_MAX_SEGS) {</span>
+<span class="lineNum">     622 </span><span class="lineCov">          2 :         status |= LOCO_BAD_N_SEGS_FLAG | LOCO_ABORT_COMPRESSION_FLAG;</span>
+<span class="lineNum">     623 </span>            :     }
+<span class="lineNum">     624 </span>            : 
+<span class="lineNum">     625 </span>            :     // Check bit width is acceptable
+<span class="lineNum">     626 </span><span class="lineCov">         33 :     if (image-&gt;bit_depth &lt; 0 || image-&gt;bit_depth &gt; BITDEPTH_12BIT) {</span>
+<span class="lineNum">     627 </span><span class="lineCov">          1 :         status |= LOCO_BAD_BIT_DEPTH_FLAG | LOCO_ABORT_COMPRESSION_FLAG;</span>
+<span class="lineNum">     628 </span>            :     }
+<span class="lineNum">     629 </span>            : 
+<span class="lineNum">     630 </span>            :     // Check image size is at least space width * height * size(LocoPixelType)
+<span class="lineNum">     631 </span><span class="lineCov">         33 :     if(image-&gt;space_width*image-&gt;height*sizeof(LocoPixelType) &gt; image-&gt;size_data_bytes){</span>
+<span class="lineNum">     632 </span><span class="lineCov">          1 :         status |= LOCO_SMALL_BUFFER_FLAG | LOCO_ABORT_COMPRESSION_FLAG;</span>
+<span class="lineNum">     633 </span>            :     }
+<span class="lineNum">     634 </span>            : 
+<span class="lineNum">     635 </span><span class="lineCov">         33 :     return status;</span>
+<a name="636"><span class="lineNum">     636 </span>            : }</a>
+<span class="lineNum">     637 </span>            : 
+<span class="lineNum">     638 </span><span class="lineCov">        217 : LOCO_PRIVATE void loco_compress_segment_8bit(LocoCompressState * state,</span>
+<span class="lineNum">     639 </span>            :         I32 seg, I32 xstart, I32 xend,
+<span class="lineNum">     640 </span>            :         I32 ystart, I32 yend)
+<span class="lineNum">     641 </span>            : {
+<span class="lineNum">     642 </span><span class="lineCov">        217 :     LOCO_ASSERT(state != NULL);</span>
+<span class="lineNum">     643 </span>            : 
+<span class="lineNum">     644 </span>            :     I32 est;
+<span class="lineNum">     645 </span>            :     I32 residual;
+<span class="lineNum">     646 </span>            :     I32 msum;
+<span class="lineNum">     647 </span>            :     I32 sum;
+<span class="lineNum">     648 </span>            :     I32 kshift;
+<span class="lineNum">     649 </span>            :     I32 context;
+<span class="lineNum">     650 </span>            :     I32 context_info;
+<span class="lineNum">     651 </span><span class="lineCov">        217 :     I32 b = 0;</span>
+<span class="lineNum">     652 </span><span class="lineCov">        217 :     I32 c = 0;</span>
+<span class="lineNum">     653 </span><span class="lineCov">        217 :     I32 a = 0;</span>
+<span class="lineNum">     654 </span><span class="lineCov">        217 :     I32 d = 0;</span>
+<span class="lineNum">     655 </span><span class="lineCov">        217 :     I32 e = 0;</span>
+<span class="lineNum">     656 </span><span class="lineCov">        217 :     I32 ctxt2s = 0;</span>
+<span class="lineNum">     657 </span><span class="lineCov">        217 :     I32 ctxt1s = 0;</span>
+<span class="lineNum">     658 </span>            :     I32 loop_cnt;
+<span class="lineNum">     659 </span>            :     I32 loop_limit;
+<span class="lineNum">     660 </span>            :     LocoPixelType *p_line_start;
+<span class="lineNum">     661 </span>            :     LocoPixelType *p_line_start_p1;
+<span class="lineNum">     662 </span>            :     LocoPixelType *p_line_end;
+<span class="lineNum">     663 </span>            :     LocoPixelType *p_pixel;
+<span class="lineNum">     664 </span><span class="lineCov">        217 :     LocoPixelType *p_pixel_m1 = NULL;</span>
+<span class="lineNum">     665 </span>            : 
+<span class="lineNum">     666 </span>            :     // Initialize context statistics
+<span class="lineNum">     667 </span><span class="lineCov">     222425 :     for (I32 i=0;i&lt;LOCO_NCONTEXTS;i++) {</span>
+<span class="lineNum">     668 </span><span class="lineCov">     222208 :         state-&gt;c_count[i] = INITCC_8BIT;</span>
+<span class="lineNum">     669 </span><span class="lineCov">     222208 :         state-&gt;c_mag_sum[i] = INITCMS_8BIT;</span>
+<span class="lineNum">     670 </span><span class="lineCov">     222208 :         state-&gt;c_sum[i] = 0;</span>
+<span class="lineNum">     671 </span><span class="lineCov">     222208 :         state-&gt;c_bias[i] = 0;</span>
+<span class="lineNum">     672 </span>            :     }
+<span class="lineNum">     673 </span>            : 
+<span class="lineNum">     674 </span>            :     // Write segment header
+<span class="lineNum">     675 </span><span class="lineCov">        217 :     loco_write_integer(state, HEADER_CODE_FOR_8BIT, HEADER_CODE_BITS);</span>
+<span class="lineNum">     676 </span><span class="lineCov">        217 :     loco_write_integer(state, state-&gt;image_width-1, IMAGEWIDTH_BITS);</span>
+<span class="lineNum">     677 </span><span class="lineCov">        217 :     loco_write_integer(state, state-&gt;image_height-1, IMAGEHEIGHT_BITS);</span>
+<span class="lineNum">     678 </span><span class="lineCov">        217 :     loco_write_integer(state, state-&gt;n_segs-1, SEGINDEX_BITS);</span>
+<span class="lineNum">     679 </span><span class="lineCov">        217 :     loco_write_integer(state, seg, SEGINDEX_BITS);</span>
+<span class="lineNum">     680 </span>            : 
+<span class="lineNum">     681 </span><span class="lineCov">        217 :     LOCO_ASSERT_2(ystart &lt; LOCO_MAX_IMAGE_HEIGHT - 1,</span>
+<span class="lineNum">     682 </span>            :             ystart, LOCO_MAX_IMAGE_HEIGHT);
+<span class="lineNum">     683 </span>            : 
+<span class="lineNum">     684 </span>            :     // Write first two pixels directly
+<span class="lineNum">     685 </span><span class="lineCov">        217 :     loco_write_integer(state, state-&gt;image_rows[ystart][xstart],   BITDEPTH_8BIT);</span>
+<span class="lineNum">     686 </span><span class="lineCov">        217 :     loco_write_integer(state, state-&gt;image_rows[ystart][xstart+1], BITDEPTH_8BIT);</span>
+<span class="lineNum">     687 </span>            : 
+<span class="lineNum">     688 </span>            :     // Main encoding loop
+<span class="lineNum">     689 </span><span class="lineCov">      16833 :     for (I32 y=ystart; y&lt;yend; y++) {</span>
+<span class="lineNum">     690 </span><span class="lineCov">      16616 :         p_line_start = state-&gt;image_rows[y] + xstart;</span>
+<span class="lineNum">     691 </span><span class="lineCov">      16616 :         p_line_start_p1 = p_line_start + 1;</span>
+<span class="lineNum">     692 </span><span class="lineCov">      16616 :         p_line_end = state-&gt;image_rows[y] + xend-1;</span>
+<span class="lineNum">     693 </span><span class="lineCov">      16616 :         p_pixel = p_line_start;</span>
+<span class="lineNum">     694 </span><span class="lineCov">      16616 :         if (y==ystart) {</span>
+<span class="lineNum">     695 </span><span class="lineCov">        217 :             e = *p_pixel++;</span>
+<span class="lineNum">     696 </span><span class="lineCov">        217 :             b = *p_pixel++;</span>
+<span class="lineNum">     697 </span>            :         } else {
+<span class="lineNum">     698 </span><span class="lineCov">      16399 :             p_pixel_m1 = state-&gt;image_rows[y-1]+xstart;</span>
+<span class="lineNum">     699 </span><span class="lineCov">      16399 :             a = *p_pixel_m1++;</span>
+<span class="lineNum">     700 </span>            :         }
+<span class="lineNum">     701 </span>            :         do {
+<span class="lineNum">     702 </span><span class="lineCov">    1413966 :             if (y==ystart) { // top row</span>
+<span class="lineNum">     703 </span><span class="lineCov">      18046 :                 est = b;</span>
+<span class="lineNum">     704 </span><span class="lineCov">      18046 :                 context_info = loco_context_info_table[GFOUR_TO_CTXT_8BIT(b - e)];</span>
+<span class="lineNum">     705 </span><span class="lineCov">      18046 :                 context = (context_info&gt;&gt;1) | 0x90;</span>
+<span class="lineNum">     706 </span><span class="lineCov">    1395920 :             } else if (p_pixel == p_line_start) { // left side</span>
+<span class="lineNum">     707 </span><span class="lineCov">      16399 :                 d = *p_pixel_m1++;</span>
+<span class="lineNum">     708 </span><span class="lineCov">      16399 :                 ctxt1s = G_TO_CTXT_8BIT(d - a);</span>
+<span class="lineNum">     709 </span><span class="lineCov">      16399 :                 est = a;</span>
+<span class="lineNum">     710 </span><span class="lineCov">      16399 :                 context_info = loco_context_info_table[ctxt1s];</span>
+<span class="lineNum">     711 </span><span class="lineCov">      16399 :                 context = (context_info&gt;&gt;1) | 0x12;</span>
+<span class="lineNum">     712 </span>            :             } else {
+<span class="lineNum">     713 </span><span class="lineCov">    1379521 :                 if (a &gt; b) {</span>
+<span class="lineNum">     714 </span><span class="lineCov">     169323 :                     if (c &gt;= a) {</span>
+<span class="lineNum">     715 </span><span class="lineCov">      53071 :                         est = b;</span>
+<span class="lineNum">     716 </span><span class="lineCov">     116252 :                     } else if (c &lt;= b) {</span>
+<span class="lineNum">     717 </span><span class="lineCov">      61505 :                         est = a;</span>
+<span class="lineNum">     718 </span>            :                     } else {
+<span class="lineNum">     719 </span><span class="lineCov">      54747 :                         est = a + b - c;</span>
+<span class="lineNum">     720 </span>            :                     }
+<span class="lineNum">     721 </span>            :                 } else {
+<span class="lineNum">     722 </span><span class="lineCov">    1210198 :                     if (c &gt;= b) {</span>
+<span class="lineNum">     723 </span><span class="lineCov">    1096662 :                         est = a;</span>
+<span class="lineNum">     724 </span><span class="lineCov">     113536 :                     } else if (c &lt;= a) {</span>
+<span class="lineNum">     725 </span><span class="lineCov">      59111 :                         est = b;</span>
+<span class="lineNum">     726 </span>            :                     } else {
+<span class="lineNum">     727 </span><span class="lineCov">      54425 :                         est = a + b - c;</span>
+<span class="lineNum">     728 </span>            :                     }
+<span class="lineNum">     729 </span>            :                 }
+<span class="lineNum">     730 </span><span class="lineCov">    1379521 :                 if (p_pixel == p_line_start_p1) { // left side + 1</span>
+<span class="lineNum">     731 </span><span class="lineCov">      16399 :                     d = *p_pixel_m1++;</span>
+<span class="lineNum">     732 </span><span class="lineCov">      16399 :                     ctxt1s = G_TO_CTXT_8BIT(d - a);</span>
+<span class="lineNum">     733 </span><span class="lineCov">      32798 :                     context_info = loco_context_info_table[(G_TO_CTXT_8BIT(c - b)&gt;&gt;3) |</span>
+<span class="lineNum">     734 </span><span class="lineCov">      16399 :                                                        ctxt1s | ctxt2s];</span>
+<span class="lineNum">     735 </span><span class="lineCov">      16399 :                     context = (context_info&gt;&gt;1) | 0x02;</span>
+<span class="lineNum">     736 </span><span class="lineCov">    1363122 :                 } else if (p_pixel == p_line_end) { // bottom row</span>
+<span class="lineNum">     737 </span><span class="lineCov">      49197 :                     context_info = loco_context_info_table[GFOUR_TO_CTXT_8BIT(b - e) |</span>
+<span class="lineNum">     738 </span><span class="lineCov">      32798 :                                        (G_TO_CTXT_8BIT(c - b)&gt;&gt;3) | ctxt2s];</span>
+<span class="lineNum">     739 </span><span class="lineCov">      16399 :                     context = (context_info&gt;&gt;1) | 0x80;</span>
+<span class="lineNum">     740 </span>            :                 } else {
+<span class="lineNum">     741 </span><span class="lineCov">    1346723 :                     d = *p_pixel_m1++;</span>
+<span class="lineNum">     742 </span><span class="lineCov">    1346723 :                     ctxt1s = G_TO_CTXT_8BIT(d - a);</span>
+<span class="lineNum">     743 </span><span class="lineCov">    4040169 :                     context_info = loco_context_info_table[GFOUR_TO_CTXT_8BIT(b - e) |</span>
+<span class="lineNum">     744 </span><span class="lineCov">    2693446 :                                (G_TO_CTXT_8BIT(c - b)&gt;&gt;3) | ctxt1s | ctxt2s];</span>
+<span class="lineNum">     745 </span><span class="lineCov">    1346723 :                     context = context_info&gt;&gt;1;</span>
+<span class="lineNum">     746 </span>            :                 }
+<span class="lineNum">     747 </span>            :             }
+<span class="lineNum">     748 </span>            : 
+<span class="lineNum">     749 </span><span class="lineCov">    1413966 :             ctxt2s = ctxt1s&lt;&lt;3;</span>
+<span class="lineNum">     750 </span><span class="lineCov">    1413966 :             e = b;</span>
+<span class="lineNum">     751 </span><span class="lineCov">    1413966 :             b = *p_pixel++;</span>
+<span class="lineNum">     752 </span><span class="lineCov">    1413966 :             c = a;</span>
+<span class="lineNum">     753 </span><span class="lineCov">    1413966 :             a = d;</span>
+<span class="lineNum">     754 </span>            : 
+<span class="lineNum">     755 </span>            :             /* Incorporate the context-based bias into the pixel estimate
+<span class="lineNum">     756 </span>            :                and compute the residual */
+<span class="lineNum">     757 </span><span class="lineCov">    1413966 :             if (context_info &amp; 01) {</span>
+<span class="lineNum">     758 </span><span class="lineCov">     172310 :                 est -= state-&gt;c_bias[context];</span>
+<span class="lineNum">     759 </span>            :                 /* Clip estimate to allowed range */
+<span class="lineNum">     760 </span><span class="lineCov">     172310 :                 if (est &amp; OUT_OF_RANGE_MASK_8BIT) {</span>
+<span class="lineNum">     761 </span><span class="lineCov">       9648 :                     if (est &lt; 0) {</span>
+<span class="lineNum">     762 </span><span class="lineCov">       9377 :                         est = 0;</span>
+<span class="lineNum">     763 </span>            :                     }
+<span class="lineNum">     764 </span>            :                     else {
+<span class="lineNum">     765 </span><span class="lineCov">        271 :                         est = PMAX_8BIT;</span>
+<span class="lineNum">     766 </span>            :                     }
+<span class="lineNum">     767 </span>            :                 }
+<span class="lineNum">     768 </span><span class="lineCov">     172310 :                 residual = est - b;</span>
+<span class="lineNum">     769 </span>            :             } else {
+<span class="lineNum">     770 </span><span class="lineCov">    1241656 :                 est += state-&gt;c_bias[context];</span>
+<span class="lineNum">     771 </span>            :                 /* Clip estimate to allowed range */
+<span class="lineNum">     772 </span><span class="lineCov">    1241656 :                 if (est &amp; OUT_OF_RANGE_MASK_8BIT) {</span>
+<span class="lineNum">     773 </span><span class="lineCov">      12632 :                     if (est &lt; 0) {</span>
+<span class="lineNum">     774 </span><span class="lineCov">        384 :                         est = 0;</span>
+<span class="lineNum">     775 </span>            :                     }
+<span class="lineNum">     776 </span>            :                     else {
+<span class="lineNum">     777 </span><span class="lineCov">      12248 :                         est = PMAX_8BIT;</span>
+<span class="lineNum">     778 </span>            :                     }
+<span class="lineNum">     779 </span>            :                 }
+<span class="lineNum">     780 </span><span class="lineCov">    1241656 :                 residual = b - est;</span>
+<span class="lineNum">     781 </span>            :             }
+<span class="lineNum">     782 </span>            : 
+<span class="lineNum">     783 </span>            :             /* Remap residual.  This remapping is guaranteed to be
+<span class="lineNum">     784 </span>            :                invertible if the image pixel values are all in the proper range;
+<span class="lineNum">     785 </span>            :                otherwise, it might not be. */
+<span class="lineNum">     786 </span><span class="lineCov">    1413966 :             residual &amp;= PIXEL_MASK_8BIT;</span>
+<span class="lineNum">     787 </span><span class="lineCov">    1413966 :             residual = (residual ^ RESIDUAL_SIGN_BIT_8BIT) - RESIDUAL_SIGN_BIT_8BIT;</span>
+<span class="lineNum">     788 </span>            : 
+<span class="lineNum">     789 </span>            :             /* Retrieve count and magnitude sum for the context.  A mask is
+<span class="lineNum">     790 </span>            :                applied to the magnitude sum as a precaution, ensuring that
+<span class="lineNum">     791 </span>            :                the computation of k goes smoothly.  */
+<span class="lineNum">     792 </span><span class="lineCov">    1413966 :             kshift = state-&gt;c_count[context]++;</span>
+<span class="lineNum">     793 </span><span class="lineCov">    1413966 :             msum = state-&gt;c_mag_sum[context] &amp; MSUM_MASK;</span>
+<span class="lineNum">     794 </span>            : 
+<span class="lineNum">     795 </span><span class="lineCov">    1413966 :             sum = state-&gt;c_sum[context] + residual;</span>
+<span class="lineNum">     796 </span><span class="lineCov">    1413966 :             if (sum &gt; 0) {</span>
+<span class="lineNum">     797 </span><span class="lineCov">     109898 :                 state-&gt;c_bias[context]++;</span>
+<span class="lineNum">     798 </span><span class="lineCov">     109898 :                 sum -= (kshift + 1);</span>
+<span class="lineNum">     799 </span><span class="lineCov">    1304068 :             } else if (sum &lt; -(kshift+1)) {</span>
+<span class="lineNum">     800 </span><span class="lineCov">     104893 :                 state-&gt;c_bias[context]--;</span>
+<span class="lineNum">     801 </span><span class="lineCov">     104893 :                 sum += (kshift + 1);</span>
+<span class="lineNum">     802 </span>            :             } else {
+<span class="lineNum">     803 </span>            :                 // no adjustment
+<span class="lineNum">     804 </span>            :             }
+<span class="lineNum">     805 </span>            : 
+<span class="lineNum">     806 </span>            :             /* Update msum, and remap residual to a nonnegative integer */
+<span class="lineNum">     807 </span><span class="lineCov">    1413966 :             if (residual &lt; 0) {</span>
+<span class="lineNum">     808 </span><span class="lineCov">     187149 :                 state-&gt;c_mag_sum[context] -= residual;</span>
+<span class="lineNum">     809 </span><span class="lineCov">     187149 :                 residual = ~(residual &lt;&lt; 1);</span>
+<span class="lineNum">     810 </span>            :             } else {
+<span class="lineNum">     811 </span><span class="lineCov">    1226817 :                 state-&gt;c_mag_sum[context] += residual;</span>
+<span class="lineNum">     812 </span><span class="lineCov">    1226817 :                 residual &lt;&lt;= 1;</span>
+<span class="lineNum">     813 </span>            :             }
+<span class="lineNum">     814 </span>            : 
+<span class="lineNum">     815 </span>            :             /* Normalize sums if necessary */
+<span class="lineNum">     816 </span><span class="lineCov">    1413966 :             if (kshift==MAXN_8BIT-1) {</span>
+<span class="lineNum">     817 </span><span class="lineCov">      18104 :                 state-&gt;c_count[context] &gt;&gt;= 1;</span>
+<span class="lineNum">     818 </span><span class="lineCov">      18104 :                 state-&gt;c_mag_sum[context] &gt;&gt;= 1;</span>
+<span class="lineNum">     819 </span><span class="lineCov">      18104 :                 sum &gt;&gt;= 1;  /* NOTE: sign extension required (may not be portable) */</span>
+<span class="lineNum">     820 </span>            :             }
+<span class="lineNum">     821 </span><span class="lineCov">    1413966 :             state-&gt;c_sum[context] = sum;</span>
+<span class="lineNum">     822 </span>            : 
+<span class="lineNum">     823 </span>            :             // Write the &quot;uncoded&quot; portion of the residual
+<span class="lineNum">     824 </span><span class="lineCov">    1413966 :             loop_limit = 8*sizeof(I32);</span>
+<span class="lineNum">     825 </span><span class="lineCov">    3125340 :             for (loop_cnt = 0; kshift&lt;=msum &amp;&amp; loop_cnt &lt; loop_limit; loop_cnt++) {</span>
+<span class="lineNum">     826 </span><span class="lineCov">    1711374 :                 WRITE_BIT(residual &amp; 01);</span>
+<span class="lineNum">     827 </span><span class="lineCov">    1711374 :                 residual &gt;&gt;= 1;</span>
+<span class="lineNum">     828 </span><span class="lineCov">    1711374 :                 kshift &lt;&lt;= 1;</span>
+<span class="lineNum">     829 </span>            :             }
+<span class="lineNum">     830 </span><span class="lineCov">    1413966 :             LOCO_ASSERT_2(loop_cnt &lt; loop_limit, loop_cnt, loop_limit);</span>
+<span class="lineNum">     831 </span>            : 
+<span class="lineNum">     832 </span>            :             /* Unary Encode the rest of the residual */
+<span class="lineNum">     833 </span><span class="lineCov">    1413966 :             state-&gt;bit_count -= residual;</span>
+<span class="lineNum">     834 </span><span class="lineCov">    2844327 :             while (state-&gt;bit_count &lt; 0) {</span>
+<span class="lineNum">     835 </span><span class="lineCov">      16395 :                 if (state-&gt;p_out &lt; state-&gt;p_stop) {</span>
+<span class="lineNum">     836 </span><span class="lineCov">      16395 :                     *state-&gt;p_out++ = FIX_WORD(state-&gt;out_word, state-&gt;is_little_endian);</span>
+<span class="lineNum">     837 </span>            :                 }
+<span class="lineNum">     838 </span><span class="lineCov">      16395 :                 state-&gt;out_word = 0;</span>
+<span class="lineNum">     839 </span><span class="lineCov">      16395 :                 state-&gt;bit_count += 8*sizeof(LocoBitstreamType);</span>
+<span class="lineNum">     840 </span>            :             }
+<span class="lineNum">     841 </span><span class="lineCov">    1413966 :             WRITE_BIT(1);</span>
+<span class="lineNum">     842 </span>            : 
+<span class="lineNum">     843 </span><span class="lineCov">    1413966 :         } while (p_pixel &lt;= p_line_end);</span>
+<span class="lineNum">     844 </span>            : 
+<span class="lineNum">     845 </span>            :     }
+<a name="846"><span class="lineNum">     846 </span><span class="lineCov">        217 : }</span></a>
+<span class="lineNum">     847 </span>            : 
+<span class="lineNum">     848 </span><span class="lineCov">        268 : LOCO_PRIVATE void loco_compress_segment_12bit(LocoCompressState * state,</span>
+<span class="lineNum">     849 </span>            :         I32 seg, I32 xstart, I32 xend,
+<span class="lineNum">     850 </span>            :         I32 ystart, I32 yend)
+<span class="lineNum">     851 </span>            : {
+<span class="lineNum">     852 </span><span class="lineCov">        268 :     LOCO_ASSERT(state != NULL);</span>
+<span class="lineNum">     853 </span>            : 
+<span class="lineNum">     854 </span>            :     I32 est;
+<span class="lineNum">     855 </span>            :     I32 residual;
+<span class="lineNum">     856 </span>            :     I32 msum;
+<span class="lineNum">     857 </span>            :     I32 sum;
+<span class="lineNum">     858 </span>            :     I32 kshift;
+<span class="lineNum">     859 </span>            :     I32 context;
+<span class="lineNum">     860 </span>            :     I32 context_info;
+<span class="lineNum">     861 </span><span class="lineCov">        268 :     I32 b = 0;</span>
+<span class="lineNum">     862 </span><span class="lineCov">        268 :     I32 c = 0;</span>
+<span class="lineNum">     863 </span><span class="lineCov">        268 :     I32 a = 0;</span>
+<span class="lineNum">     864 </span><span class="lineCov">        268 :     I32 d = 0;</span>
+<span class="lineNum">     865 </span><span class="lineCov">        268 :     I32 e = 0;</span>
+<span class="lineNum">     866 </span><span class="lineCov">        268 :     I32 ctxt2s = 0;</span>
+<span class="lineNum">     867 </span><span class="lineCov">        268 :     I32 ctxt1s = 0;</span>
+<span class="lineNum">     868 </span>            :     I32 loop_cnt;
+<span class="lineNum">     869 </span>            :     I32 loop_limit;
+<span class="lineNum">     870 </span>            :     LocoPixelType *p_line_start;
+<span class="lineNum">     871 </span>            :     LocoPixelType *p_line_start_p1;
+<span class="lineNum">     872 </span>            :     LocoPixelType *p_line_end;
+<span class="lineNum">     873 </span>            :     LocoPixelType *p_pixel;
+<span class="lineNum">     874 </span><span class="lineCov">        268 :     LocoPixelType *p_pixel_m1 = NULL;</span>
+<span class="lineNum">     875 </span>            : 
+<span class="lineNum">     876 </span>            :     // Initialize context statistics
+<span class="lineNum">     877 </span><span class="lineCov">     274700 :     for (I32 i=0;i&lt;LOCO_NCONTEXTS;i++) {</span>
+<span class="lineNum">     878 </span><span class="lineCov">     274432 :         state-&gt;c_count[i] = INITCC_12BIT;</span>
+<span class="lineNum">     879 </span><span class="lineCov">     274432 :         state-&gt;c_mag_sum[i] = INITCMS_12BIT;</span>
+<span class="lineNum">     880 </span><span class="lineCov">     274432 :         state-&gt;c_sum[i] = 0;</span>
+<span class="lineNum">     881 </span><span class="lineCov">     274432 :         state-&gt;c_bias[i] = 0;</span>
+<span class="lineNum">     882 </span>            :     }
+<span class="lineNum">     883 </span>            : 
+<span class="lineNum">     884 </span>            :     // Write segment header
+<span class="lineNum">     885 </span><span class="lineCov">        268 :     loco_write_integer(state, HEADER_CODE_FOR_12BIT, HEADER_CODE_BITS);</span>
+<span class="lineNum">     886 </span><span class="lineCov">        268 :     loco_write_integer(state, state-&gt;image_width-1, IMAGEWIDTH_BITS);</span>
+<span class="lineNum">     887 </span><span class="lineCov">        268 :     loco_write_integer(state, state-&gt;image_height-1, IMAGEHEIGHT_BITS);</span>
+<span class="lineNum">     888 </span><span class="lineCov">        268 :     loco_write_integer(state, state-&gt;n_segs-1, SEGINDEX_BITS);</span>
+<span class="lineNum">     889 </span><span class="lineCov">        268 :     loco_write_integer(state, seg, SEGINDEX_BITS);</span>
+<span class="lineNum">     890 </span>            : 
+<span class="lineNum">     891 </span><span class="lineCov">        268 :     LOCO_ASSERT_2(ystart &lt; LOCO_MAX_IMAGE_HEIGHT-1,</span>
+<span class="lineNum">     892 </span>            :             ystart, LOCO_MAX_IMAGE_HEIGHT);
+<span class="lineNum">     893 </span>            : 
+<span class="lineNum">     894 </span>            :     // Write first two pixels directly
+<span class="lineNum">     895 </span><span class="lineCov">        268 :     loco_write_integer(state, state-&gt;image_rows[ystart][xstart], BITDEPTH_12BIT);</span>
+<span class="lineNum">     896 </span><span class="lineCov">        268 :     loco_write_integer(state, state-&gt;image_rows[ystart][xstart+1], BITDEPTH_12BIT);</span>
+<span class="lineNum">     897 </span>            : 
+<span class="lineNum">     898 </span>            :     // Main encoding loop
+<span class="lineNum">     899 </span><span class="lineCov">      22641 :     for (I32 y=ystart; y&lt;yend; y++) {</span>
+<span class="lineNum">     900 </span><span class="lineCov">      22373 :         p_line_start = state-&gt;image_rows[y] + xstart;</span>
+<span class="lineNum">     901 </span><span class="lineCov">      22373 :         p_line_start_p1 = p_line_start + 1;</span>
+<span class="lineNum">     902 </span><span class="lineCov">      22373 :         p_line_end = state-&gt;image_rows[y] + xend-1;</span>
+<span class="lineNum">     903 </span><span class="lineCov">      22373 :         p_pixel = p_line_start;</span>
+<span class="lineNum">     904 </span><span class="lineCov">      22373 :         if (y==ystart) {</span>
+<span class="lineNum">     905 </span><span class="lineCov">        268 :             e = *p_pixel++;</span>
+<span class="lineNum">     906 </span><span class="lineCov">        268 :             b = *p_pixel++;</span>
+<span class="lineNum">     907 </span>            :         } else {
+<span class="lineNum">     908 </span><span class="lineCov">      22105 :             p_pixel_m1 = state-&gt;image_rows[y-1]+xstart;</span>
+<span class="lineNum">     909 </span><span class="lineCov">      22105 :             a = *p_pixel_m1++;</span>
+<span class="lineNum">     910 </span>            :         }
+<span class="lineNum">     911 </span>            :         do {
+<span class="lineNum">     912 </span><span class="lineCov">    2105064 :             if (y==ystart) { // top row</span>
+<span class="lineNum">     913 </span><span class="lineCov">      23704 :                 est = b;</span>
+<span class="lineNum">     914 </span><span class="lineCov">      23704 :                 context_info = loco_context_info_table[GFOUR_TO_CTXT_12BIT(b - e)];</span>
+<span class="lineNum">     915 </span><span class="lineCov">      23704 :                 context = (context_info&gt;&gt;1) | 0x90;</span>
+<span class="lineNum">     916 </span><span class="lineCov">    2081360 :             } else if (p_pixel == p_line_start) { // left side</span>
+<span class="lineNum">     917 </span><span class="lineCov">      22105 :                 d = *p_pixel_m1++;</span>
+<span class="lineNum">     918 </span><span class="lineCov">      22105 :                 ctxt1s = G_TO_CTXT_12BIT(d - a);</span>
+<span class="lineNum">     919 </span><span class="lineCov">      22105 :                 est = a;</span>
+<span class="lineNum">     920 </span><span class="lineCov">      22105 :                 context_info = loco_context_info_table[ctxt1s];</span>
+<span class="lineNum">     921 </span><span class="lineCov">      22105 :                 context = (context_info&gt;&gt;1) | 0x12;</span>
+<span class="lineNum">     922 </span>            :             } else {
+<span class="lineNum">     923 </span><span class="lineCov">    2059255 :                 if (a &gt; b) {</span>
+<span class="lineNum">     924 </span><span class="lineCov">     512712 :                     if (c &gt;= a) {</span>
+<span class="lineNum">     925 </span><span class="lineCov">     165921 :                         est = b;</span>
+<span class="lineNum">     926 </span><span class="lineCov">     346791 :                     } else if (c &lt;= b) {</span>
+<span class="lineNum">     927 </span><span class="lineCov">     176244 :                         est = a;</span>
+<span class="lineNum">     928 </span>            :                     } else {
+<span class="lineNum">     929 </span><span class="lineCov">     170547 :                         est = a + b - c;</span>
+<span class="lineNum">     930 </span>            :                     }
+<span class="lineNum">     931 </span>            :                 } else {
+<span class="lineNum">     932 </span><span class="lineCov">    1546543 :                     if (c &gt;= b) {</span>
+<span class="lineNum">     933 </span><span class="lineCov">    1204593 :                         est = a;</span>
+<span class="lineNum">     934 </span><span class="lineCov">     341950 :                     } else if (c &lt;= a) {</span>
+<span class="lineNum">     935 </span><span class="lineCov">     171205 :                         est = b;</span>
+<span class="lineNum">     936 </span>            :                     } else {
+<span class="lineNum">     937 </span><span class="lineCov">     170745 :                         est = a + b - c;</span>
+<span class="lineNum">     938 </span>            :                     }
+<span class="lineNum">     939 </span>            :                 }
+<span class="lineNum">     940 </span><span class="lineCov">    2059255 :                 if (p_pixel == p_line_start_p1) { // left side + 1</span>
+<span class="lineNum">     941 </span><span class="lineCov">      22105 :                     d = *p_pixel_m1++;</span>
+<span class="lineNum">     942 </span><span class="lineCov">      22105 :                     ctxt1s = G_TO_CTXT_12BIT(d - a);</span>
+<span class="lineNum">     943 </span><span class="lineCov">      44210 :                     context_info = loco_context_info_table[(G_TO_CTXT_12BIT(c - b)&gt;&gt;3) |</span>
+<span class="lineNum">     944 </span><span class="lineCov">      22105 :                                                        ctxt1s | ctxt2s];</span>
+<span class="lineNum">     945 </span><span class="lineCov">      22105 :                     context = (context_info&gt;&gt;1) | 0x02;</span>
+<span class="lineNum">     946 </span><span class="lineCov">    2037150 :                 } else if (p_pixel == p_line_end) { // bottom row</span>
+<span class="lineNum">     947 </span><span class="lineCov">      66315 :                     context_info = loco_context_info_table[GFOUR_TO_CTXT_12BIT(b - e) |</span>
+<span class="lineNum">     948 </span><span class="lineCov">      44210 :                                        (G_TO_CTXT_12BIT(c - b)&gt;&gt;3) | ctxt2s];</span>
+<span class="lineNum">     949 </span><span class="lineCov">      22105 :                     context = (context_info&gt;&gt;1) | 0x80;</span>
+<span class="lineNum">     950 </span>            :                 } else {
+<span class="lineNum">     951 </span><span class="lineCov">    2015045 :                     d = *p_pixel_m1++;</span>
+<span class="lineNum">     952 </span><span class="lineCov">    2015045 :                     ctxt1s = G_TO_CTXT_12BIT(d - a);</span>
+<span class="lineNum">     953 </span><span class="lineCov">    6045135 :                     context_info = loco_context_info_table[GFOUR_TO_CTXT_12BIT(b - e) |</span>
+<span class="lineNum">     954 </span><span class="lineCov">    4030090 :                                (G_TO_CTXT_12BIT(c - b)&gt;&gt;3) | ctxt1s | ctxt2s];</span>
+<span class="lineNum">     955 </span><span class="lineCov">    2015045 :                     context = context_info&gt;&gt;1;</span>
+<span class="lineNum">     956 </span>            :                 }
+<span class="lineNum">     957 </span>            :             }
+<span class="lineNum">     958 </span>            : 
+<span class="lineNum">     959 </span><span class="lineCov">    2105064 :             ctxt2s = ctxt1s&lt;&lt;3;</span>
+<span class="lineNum">     960 </span><span class="lineCov">    2105064 :             e = b;</span>
+<span class="lineNum">     961 </span><span class="lineCov">    2105064 :             b = *p_pixel++;</span>
+<span class="lineNum">     962 </span><span class="lineCov">    2105064 :             c = a;</span>
+<span class="lineNum">     963 </span><span class="lineCov">    2105064 :             a = d;</span>
+<span class="lineNum">     964 </span>            : 
+<span class="lineNum">     965 </span>            :             /* Incorporate the context-based bias into the pixel estimate
+<span class="lineNum">     966 </span>            :                and compute the residual */
+<span class="lineNum">     967 </span><span class="lineCov">    2105064 :             if (context_info &amp; 01) {</span>
+<span class="lineNum">     968 </span><span class="lineCov">     517221 :                 est -= state-&gt;c_bias[context];</span>
+<span class="lineNum">     969 </span>            :                 /* Clip estimate to allowed range */
+<span class="lineNum">     970 </span><span class="lineCov">     517221 :                 if (est &amp; OUT_OF_RANGE_MASK_12BIT) {</span>
+<span class="lineNum">     971 </span><span class="lineCov">       5941 :                     if (est &lt; 0) {</span>
+<span class="lineNum">     972 </span><span class="lineCov">       5528 :                         est = 0;</span>
+<span class="lineNum">     973 </span>            :                     }
+<span class="lineNum">     974 </span>            :                     else {
+<span class="lineNum">     975 </span><span class="lineCov">        413 :                         est = PMAX_12BIT;</span>
+<span class="lineNum">     976 </span>            :                     }
+<span class="lineNum">     977 </span>            :                 }
+<span class="lineNum">     978 </span><span class="lineCov">     517221 :                 residual = est - b;</span>
+<span class="lineNum">     979 </span>            :             } else {
+<span class="lineNum">     980 </span><span class="lineCov">    1587843 :                 est += state-&gt;c_bias[context];</span>
+<span class="lineNum">     981 </span>            :                 /* Clip estimate to allowed range */
+<span class="lineNum">     982 </span><span class="lineCov">    1587843 :                 if (est &amp; OUT_OF_RANGE_MASK_12BIT) {</span>
+<span class="lineNum">     983 </span><span class="lineCov">       5817 :                     if (est &lt; 0) {</span>
+<span class="lineNum">     984 </span><span class="lineCov">       1347 :                         est = 0;</span>
+<span class="lineNum">     985 </span>            :                     }
+<span class="lineNum">     986 </span>            :                     else {
+<span class="lineNum">     987 </span><span class="lineCov">       4470 :                         est = PMAX_12BIT;</span>
+<span class="lineNum">     988 </span>            :                     }
+<span class="lineNum">     989 </span>            :                 }
+<span class="lineNum">     990 </span><span class="lineCov">    1587843 :                 residual = b - est;</span>
+<span class="lineNum">     991 </span>            :             }
+<span class="lineNum">     992 </span>            : 
+<span class="lineNum">     993 </span>            :             /* Remap residual.  This remapping is guaranteed to be
+<span class="lineNum">     994 </span>            :                invertible if the image pixel values are all in the proper range;
+<span class="lineNum">     995 </span>            :                otherwise, it might not be. */
+<span class="lineNum">     996 </span><span class="lineCov">    2105064 :             residual &amp;= PIXEL_MASK_12BIT;</span>
+<span class="lineNum">     997 </span><span class="lineCov">    2105064 :             residual = (residual ^ RESIDUAL_SIGN_BIT_12BIT) - RESIDUAL_SIGN_BIT_12BIT;</span>
+<span class="lineNum">     998 </span>            : 
+<span class="lineNum">     999 </span>            :             /* Retrieve count and magnitude sum for the context.  A mask is
+<span class="lineNum">    1000 </span>            :                applied to the magnitude sum as a precaution, ensuring that
+<span class="lineNum">    1001 </span>            :                the computation of k goes smoothly.  */
+<span class="lineNum">    1002 </span><span class="lineCov">    2105064 :             kshift = state-&gt;c_count[context]++;</span>
+<span class="lineNum">    1003 </span><span class="lineCov">    2105064 :             msum = state-&gt;c_mag_sum[context] &amp; MSUM_MASK;</span>
+<span class="lineNum">    1004 </span>            : 
+<span class="lineNum">    1005 </span><span class="lineCov">    2105064 :             sum = state-&gt;c_sum[context] + residual;</span>
+<span class="lineNum">    1006 </span><span class="lineCov">    2105064 :             if (sum &gt; 0) {</span>
+<span class="lineNum">    1007 </span><span class="lineCov">     369921 :                 state-&gt;c_bias[context]++;</span>
+<span class="lineNum">    1008 </span><span class="lineCov">     369921 :                 sum -= (kshift + 1);</span>
+<span class="lineNum">    1009 </span><span class="lineCov">    1735143 :             } else if (sum &lt; -(kshift + 1)) {</span>
+<span class="lineNum">    1010 </span><span class="lineCov">     605022 :                 state-&gt;c_bias[context]--;</span>
+<span class="lineNum">    1011 </span><span class="lineCov">     605022 :                 sum += (kshift + 1);</span>
+<span class="lineNum">    1012 </span>            :             } else {
+<span class="lineNum">    1013 </span>            :                 // no adjustments
+<span class="lineNum">    1014 </span>            :             }
+<span class="lineNum">    1015 </span>            : 
+<span class="lineNum">    1016 </span>            :             /* Update msum, and remap residual to a nonnegative integer */
+<span class="lineNum">    1017 </span><span class="lineCov">    2105064 :             if (residual &lt; 0) {</span>
+<span class="lineNum">    1018 </span><span class="lineCov">     585505 :                 state-&gt;c_mag_sum[context] -= residual;</span>
+<span class="lineNum">    1019 </span><span class="lineCov">     585505 :                 residual = ~(residual &lt;&lt; 1);</span>
+<span class="lineNum">    1020 </span>            :             } else {
+<span class="lineNum">    1021 </span><span class="lineCov">    1519559 :                 state-&gt;c_mag_sum[context] += residual;</span>
+<span class="lineNum">    1022 </span><span class="lineCov">    1519559 :                 residual &lt;&lt;= 1;</span>
+<span class="lineNum">    1023 </span>            :             }
+<span class="lineNum">    1024 </span>            : 
+<span class="lineNum">    1025 </span>            :             /* Store updated context information */
+<span class="lineNum">    1026 </span><span class="lineCov">    2105064 :             if (kshift == MAXN_12BIT-1) {   /* Normalize sums if necessary */</span>
+<span class="lineNum">    1027 </span><span class="lineCov">      44732 :                 state-&gt;c_count[context] &gt;&gt;= 1;</span>
+<span class="lineNum">    1028 </span><span class="lineCov">      44732 :                 state-&gt;c_mag_sum[context] &gt;&gt;= 1;</span>
+<span class="lineNum">    1029 </span><span class="lineCov">      44732 :                 sum &gt;&gt;= 1;  /* NOTE: sign extension required (may not be portable) */</span>
+<span class="lineNum">    1030 </span>            :             }
+<span class="lineNum">    1031 </span><span class="lineCov">    2105064 :             state-&gt;c_sum[context] = sum;</span>
+<span class="lineNum">    1032 </span>            : 
+<span class="lineNum">    1033 </span>            :             /* Write the &quot;uncoded&quot; portion of the residual */
+<span class="lineNum">    1034 </span><span class="lineCov">    2105064 :             loop_limit = 8*sizeof(I32);</span>
+<span class="lineNum">    1035 </span><span class="lineCov">    9812894 :             for (loop_cnt = 0; kshift&lt;=msum &amp;&amp; loop_cnt &lt; loop_limit; loop_cnt++) {</span>
+<span class="lineNum">    1036 </span><span class="lineCov">    7707830 :                 WRITE_BIT(residual &amp; 01);</span>
+<span class="lineNum">    1037 </span><span class="lineCov">    7707830 :                 residual &gt;&gt;= 1;</span>
+<span class="lineNum">    1038 </span><span class="lineCov">    7707830 :                 kshift &lt;&lt;= 1;</span>
+<span class="lineNum">    1039 </span>            :             }
+<span class="lineNum">    1040 </span><span class="lineCov">    2105064 :             LOCO_ASSERT_2(loop_cnt &lt; loop_limit, loop_cnt, loop_limit);</span>
+<span class="lineNum">    1041 </span>            : 
+<span class="lineNum">    1042 </span>            :             /* Unary Encode the rest of the residual */
+<span class="lineNum">    1043 </span><span class="lineCov">    2105064 :             state-&gt;bit_count -= residual;</span>
+<span class="lineNum">    1044 </span><span class="lineCov">    4262361 :             while (state-&gt;bit_count &lt; 0) {</span>
+<span class="lineNum">    1045 </span><span class="lineCov">      52233 :                 if (state-&gt;p_out &lt; state-&gt;p_stop) {</span>
+<span class="lineNum">    1046 </span><span class="lineCov">      51671 :                     *state-&gt;p_out++ = FIX_WORD(state-&gt;out_word, state-&gt;is_little_endian);</span>
+<span class="lineNum">    1047 </span>            :                 }
+<span class="lineNum">    1048 </span><span class="lineCov">      52233 :                 state-&gt;out_word = 0;</span>
+<span class="lineNum">    1049 </span><span class="lineCov">      52233 :                 state-&gt;bit_count += 8*sizeof(LocoBitstreamType);</span>
+<span class="lineNum">    1050 </span>            :             }
+<span class="lineNum">    1051 </span><span class="lineCov">    2105064 :             WRITE_BIT(1);</span>
+<span class="lineNum">    1052 </span>            : 
+<span class="lineNum">    1053 </span><span class="lineCov">    2105064 :         } while (p_pixel &lt;= p_line_end);</span>
+<span class="lineNum">    1054 </span>            : 
+<span class="lineNum">    1055 </span>            :     }
+<a name="1056"><span class="lineNum">    1056 </span><span class="lineCov">        268 : }</span></a>
+<span class="lineNum">    1057 </span>            : 
+<span class="lineNum">    1058 </span><span class="lineCov">       3395 : LOCO_PRIVATE void loco_write_integer(</span>
+<span class="lineNum">    1059 </span>            :         LocoCompressState * state, I32 val, I32 bits)
+<span class="lineNum">    1060 </span>            : {
+<span class="lineNum">    1061 </span><span class="lineCov">       3395 :     LOCO_ASSERT(state != NULL);</span>
+<span class="lineNum">    1062 </span><span class="lineCov">      30759 :     for (I32 bits_local = bits; bits_local &gt; 0; bits_local--) {</span>
+<span class="lineNum">    1063 </span><span class="lineCov">      27364 :         WRITE_BIT(val &amp; 01);</span>
+<span class="lineNum">    1064 </span><span class="lineCov">      27364 :         val &gt;&gt;= 1;</span>
+<span class="lineNum">    1065 </span>            :     }
+<span class="lineNum">    1066 </span><span class="lineCov">       3395 : }</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>
