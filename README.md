@@ -3,7 +3,7 @@
 An implementation of the LOCO-I (LOw COmplexity LOssless COmpression for Images) 
 algorithm geared towards flight-safety and portability
 
-Developer/maintainer: Neil Abcouwer, neil.abcouwer@jpl.nasa.gov
+Developer/maintainer: Neil Abcouwer, neil.abcouwer [at] jpl.nasa.gov
 
 This software is based on the LOCO-I algorithm which is described in:
 
