@@ -11,6 +11,8 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-long-long -pedantic -Werror -Wno-
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/include)
 link_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/include)
 
+set(MY_TIMEOUT 300)
+
 if (CMAKE_BUILD_TYPE STREQUAL "Coverage")
   # build the unit tests
   set(CMAKE_BUILD_TYPE "Test")
@@ -28,6 +30,35 @@ if (CMAKE_BUILD_TYPE STREQUAL "Coverage")
     EXECUTABLE ctest
     DEPENDENCIES ctest)
 endif()
+
+if (CMAKE_BUILD_TYPE STREQUAL "Performance")
+  add_definitions(-DLOCO_ENABLE_PERFORMANCE_TESTS=1)
+  
+  # download corpus
+  if(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/corpus/kodak/RIGHTS.USE)
+  else()
+      project(kodak NONE)
+    
+      include(ExternalProject)
+      ExternalProject_Add(kodak
+          GIT_REPOSITORY    https://github.com/nabcouwer/kodak_cd.git
+          GIT_TAG           main
+          SOURCE_DIR        "${CMAKE_CURRENT_BINARY_DIR}/corpus/kodak"
+          BINARY_DIR        ""
+          CONFIGURE_COMMAND ""
+          BUILD_COMMAND     ""
+          INSTALL_COMMAND   ""
+          TEST_COMMAND      ""
+        )
+  endif()
+  
+  set(CMAKE_BUILD_TYPE "Test")
+  
+  # default timeout of 1500 for test may not be enough
+  # for performance testing on slow systems
+  set(MY_TIMEOUT 2000)
+    
+endif()  
 
 if (CMAKE_BUILD_TYPE STREQUAL "CfsTest")
   configure_file(
@@ -146,6 +177,9 @@ if (CMAKE_BUILD_TYPE STREQUAL "Test")
     ${IMAGEIO_SRCS})
   target_link_libraries(loco_gtest gtest_main )
   add_test(NAME loco_gtest_test COMMAND loco_gtest)
+  
+  set_tests_properties(loco_gtest_test PROPERTIES TIMEOUT ${MY_TIMEOUT}) 
+  
   
 endif()
 
