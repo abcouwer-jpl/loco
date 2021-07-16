@@ -29,6 +29,11 @@ else
     cmake -DCMAKE_BUILD_TYPE=CfsTest ..
     make
     make test ARGS="-V"
+  elif [[ "$1" = "performance" ]] ; then
+    echo "Building loco Performance configuration"
+    cmake -DCMAKE_BUILD_TYPE=Performance ..
+    make
+    make test ARGS="-V"
   elif [[ "$1" = "test" ]] ; then
     echo "Running loco tests"
     cmake -DCMAKE_BUILD_TYPE=Test ..

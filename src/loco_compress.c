@@ -573,8 +573,7 @@ I32 loco_compress(
                            - result->segments.seg_ptr[seg]);
     }
     result->segments.n_segs = state->n_segs;
-    result->compressed_size_bytes = 8
-            * (result->segments.seg_ptr[result->segments.n_segs]
+    result->compressed_size_bytes = (I32) (result->segments.seg_ptr[result->segments.n_segs]
                - result->segments.seg_ptr[0]);
 
     /* Check if the output buffer filled up, and return */

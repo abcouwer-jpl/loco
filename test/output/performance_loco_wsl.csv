@@ -1,0 +1,28 @@
+LOCO compression results
+Timing results are averaged over 24 test images.
+type, segments, compression ratio, space saving ratio, compression duration (s), decompression duration (s), compression rate (Mb/s), decompression rate (Mb/s), bits saved rate (Mb/s)
+8, 1, 2.188552, 0.543077, 0.247793, 0.571770, 203.626127, 88.248381, 33.115762
+8, 16, 2.196862, 0.544805, 0.247580, 0.562702, 203.918015, 89.677022, 33.614837
+8, 31, 2.195653, 0.544555, 0.245532, 0.562393, 205.589174, 89.753900, 33.711124
+
+processor info:
+Architecture:        x86_64
+CPU op-mode(s):      32-bit, 64-bit
+Byte Order:          Little Endian
+Address sizes:       36 bits physical, 48 bits virtual
+CPU(s):              12
+On-line CPU(s) list: 0-11
+Thread(s) per core:  2
+Core(s) per socket:  6
+Socket(s):           1
+Vendor ID:           GenuineIntel
+CPU family:          6
+Model:               165
+Model name:          Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz
+Stepping:            2
+CPU MHz:             2592.000
+CPU max MHz:         2592.0000
+BogoMIPS:            5184.00
+Hypervisor vendor:   Windows Subsystem for Linux
+Virtualization type: container
+Flags:               fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm pni pclmulqdq dtes64 est tm2 ssse3 fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt aes xsave osxsave avx f16c rdrand hypervisor lahf_lm abm 3dnowprefetch fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid mpx rdseed adx smap clflushopt ibrs ibpb stibp ssbd
